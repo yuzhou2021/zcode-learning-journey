@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZCode 学习之旅 · 学习总览</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 70px; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: #f2f4f7; color: #1a2233;
+    line-height: 1.75; font-size: 15px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 20px 60px; }
+
+  /* ---------- 顶部导航 ---------- */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid #e4e8ee;
+    display: flex; gap: 4px; overflow-x: auto; padding: 0 16px;
+  }
+  nav a {
+    text-decoration: none; color: #475467; font-size: 13.5px;
+    padding: 13px 12px; white-space: nowrap;
+    border-bottom: 2px solid transparent;
+  }
+  nav a:hover { color: #2b5cd9; }
+  nav a.hot { color: #2b5cd9; border-bottom-color: #2b5cd9; font-weight: 600; }
+
+  /* ---------- 头部 ---------- */
+  header { padding: 48px 0 28px; }
+  .eyebrow {
+    display: inline-block; font-size: 12.5px; color: #2b5cd9;
+    background: #e0eaff; border-radius: 999px; padding: 3px 12px;
+    font-weight: 600; margin-bottom: 14px; letter-spacing: .5px;
+  }
+  h1 { font-size: 30px; margin-bottom: 10px; }
+  .sub { color: #667085; font-size: 15px; max-width: 660px; }
+  .meta-line { color: #98a2b3; font-size: 13px; margin-top: 14px; }
+
+  /* 进度条 */
+  .progress-card {
+    background: #fff; border-radius: 14px; padding: 18px 22px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05); margin: 22px 0 8px;
+  }
+  .progress-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
+  .progress-head b { font-size: 15px; }
+  .progress-head span { color: #667085; font-size: 13px; }
+  .bar { height: 10px; background: #eef1f5; border-radius: 999px; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 55.6%; background: linear-gradient(90deg,#2b5cd9,#5c8bf0); border-radius: 999px; }
+  .progress-note { font-size: 13px; color: #667085; margin-top: 8px; }
+
+  /* ---------- 章节通用 ---------- */
+  section { margin-top: 46px; }
+  .sec-tag {
+    font-size: 12.5px; color: #98a2b3; font-weight: 600;
+    letter-spacing: 2px; margin-bottom: 4px;
+  }
+  h2 { font-size: 22px; margin-bottom: 6px; }
+  .sec-desc { color: #667085; font-size: 14px; margin-bottom: 18px; max-width: 720px; }
+  h3 { font-size: 16.5px; margin: 26px 0 10px; color: #1a2233; }
+  p { margin-bottom: 12px; }
+  p.weak, .weak { color: #667085; font-size: 13.5px; }
+
+  .card {
+    background: #fff; border-radius: 14px; padding: 22px 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05); margin-bottom: 14px;
+  }
+  .card h3:first-child { margin-top: 0; }
+
+  /* ---------- 时间线 ---------- */
+  .timeline { position: relative; padding-left: 26px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 7px; top: 8px; bottom: 8px;
+    width: 2px; background: #d8dee8; border-radius: 2px;
+  }
+  .tl-item { position: relative; padding: 0 0 22px 10px; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -25px; top: 7px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #fff; border: 3px solid #2b5cd9;
+  }
+  .tl-item.now::before { background: #2b5cd9; box-shadow: 0 0 0 4px #e0eaff; }
+  .tl-item.todo-item::before { border-color: #c3cbd8; }
+  .tl-date { font-size: 12.5px; color: #98a2b3; font-weight: 600; }
+  .tl-title { font-weight: 600; font-size: 15.5px; margin: 2px 0; }
+  .tl-body { color: #667085; font-size: 13.5px; }
+  .tl-item .file { font-family: Consolas, monospace; font-size: 12.5px; color: #2b5cd9; background:#f0f4fd; padding:1px 7px; border-radius:5px; }
+
+  /* ---------- 徽章 / 清单 ---------- */
+  .chip {
+    display: inline-block; font-size: 12px; padding: 2px 10px;
+    border-radius: 999px; margin: 0 6px 6px 0; font-weight: 500;
+  }
+  .chip.blue  { background: #e0eaff; color: #2b5cd9; }
+  .chip.green { background: #e5f6ea; color: #1f8a4c; }
+  .chip.orange{ background: #fdeee0; color: #c26a0f; }
+  .chip.red   { background: #f9e9e9; color: #c24545; }
+  .chip.gray  { background: #eef1f5; color: #667085; }
+  .chip.purple{ background: #f5e8f7; color: #93338f; }
+
+  ul.feat { list-style: none; }
+  ul.feat li { padding: 4px 0 4px 26px; position: relative; font-size: 14px; }
+  ul.feat li::before {
+    content: '✓'; position: absolute; left: 2px; color: #1f8a4c; font-weight: 700;
+  }
+  ul.feat li.todo::before { content: '○'; color: #98a2b3; }
+  ul.feat li.todo { color: #667085; }
+
+  /* ---------- 表格 ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 10px 0 6px; }
+  th { text-align: left; color: #667085; font-weight: 600; font-size: 12.5px; }
+  th, td { padding: 9px 10px; border-bottom: 1px solid #edf0f4; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td.step { white-space: nowrap; font-weight: 700; color: #2b5cd9; }
+  td.mono, .mono { font-family: Consolas, monospace; font-size: 12.5px; }
+
+  /* ---------- 代码块 ---------- */
+  pre {
+    background: #0f172a; color: #dbe4f3; border-radius: 10px;
+    padding: 16px 18px; overflow-x: auto; font-size: 12.8px;
+    line-height: 1.65; margin: 10px 0 14px; font-family: Consolas, "Courier New", monospace;
+  }
+  pre .cm { color: #7d8ba6; }
+  code.inline {
+    background: #eef1f5; border-radius: 5px; padding: 1px 6px;
+    font-family: Consolas, monospace; font-size: 12.8px; color: #344054;
+  }
+
+  /* bug 对照 */
+  .bug-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+  @media (max-width: 680px) { .bug-grid { grid-template-columns: 1fr; } }
+  .bug {
+    border: 1px solid #edf0f4; border-radius: 10px; padding: 14px 16px; background: #fafbfd;
+  }
+  .bug h4 { font-size: 14px; margin-bottom: 6px; }
+  .bug p { font-size: 13px; color: #667085; margin-bottom: 6px; }
+  .bug .out { font-family: Consolas, monospace; font-size: 12px; border-radius: 6px; padding: 6px 10px; }
+  .bug .bad  { background: #f9e9e9; color: #c24545; }
+  .bug .good { background: #e5f6ea; color: #1f8a4c; }
+
+  /* 需求对比 */
+  .vs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+  @media (max-width: 680px) { .vs { grid-template-columns: 1fr; } }
+  .vs .box { border-radius: 10px; padding: 14px 16px; font-size: 13.5px; }
+  .vs .bad-box  { background: #fdf4f4; border: 1px solid #f2d9d9; }
+  .vs .good-box { background: #f2f9f4; border: 1px solid #d3eada; }
+  .vs h4 { font-size: 13.5px; margin-bottom: 6px; }
+  .vs .bad-box h4 { color: #c24545; }
+  .vs .good-box h4 { color: #1f8a4c; }
+
+  /* 练习卡 */
+  .exercise { border-left: 4px solid #2b5cd9; }
+  .exercise.warm { border-left-color: #c26a0f; }
+  .exercise .ex-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .exercise .ex-head b { font-size: 16px; }
+  .exercise dl { display: grid; grid-template-columns: 92px 1fr; gap: 6px 12px; font-size: 13.8px; margin-top: 8px; }
+  .exercise dt { color: #667085; font-weight: 600; }
+  .exercise dd { margin: 0; }
+
+  .callout {
+    border-radius: 10px; padding: 13px 16px; font-size: 13.5px;
+    margin: 14px 0; display: flex; gap: 10px; align-items: flex-start;
+  }
+  .callout.info  { background: #eef4fe; color: #2b4d8f; }
+  .callout.warn  { background: #fdf6ec; color: #8a6116; }
+  .callout.ok    { background: #effaf3; color: #1f6b41; }
+
+  .kbd {
+    font-family: Consolas, monospace; font-size: 12px; background: #eef1f5;
+    border: 1px solid #d8dee8; border-bottom-width: 2px; border-radius: 5px;
+    padding: 0 6px;
+  }
+  footer { margin-top: 56px; color: #98a2b3; font-size: 12.5px; text-align: center; }
+  a.link { color: #2b5cd9; text-decoration: none; }
+  a.link:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#overview" class="hot">总览</a>
+  <a href="#map">学习地图</a>
+  <a href="#phase1">① 计算器</a>
+  <a href="#phase2">② 台账调试</a>
+  <a href="#phase3">③ 待办清单 1~4 步</a>
+  <a href="#caselog">④ 问题档案</a>
+  <a href="#roadmap">⑤ 练习路线</a>
+  <a href="#tips">心得与方法</a>
+  <a href="#files">文件清单</a>
+</nav>
+
+<div class="wrap">
+
+<header id="overview">
+  <span class="eyebrow">ZCode 学习案例 · 完整学习档案</span>
+  <h1>ZCode 学习之旅：从描述需求到迭代交付</h1>
+  <p class="sub">这份材料记录了用 AI 编程助手 ZCode 学习软件开发的完整过程——三个阶段、一个小主项目的九步路线（09-24 应本人要求新增界面优化一步）。已完成前四步；第 5 步起转为「练习卡」模式：由你向 ZCode 提需求、亲手完成，ZCode 负责验收和复盘。</p>
+  <p class="meta-line">建档 2026-09-08 ｜ 最近更新 2026-09-29（九步路线收官） ｜ 学习载体：<span class="mono">Desktop/AI_study/zcode学习案例/</span> ｜ 同步副本：<span class="mono">坚果云/1/AI_study/zcode学习案例/</span>（跨设备续练用这份；原根目录同名文件夹曾被坚果云两次误删，故改用此子路径）</p>
+
+  <div class="progress-card">
+    <div class="progress-head">
+      <b>主项目「待办清单」进度</b>
+      <span>第 9 步 / 共 9 步 · 全部完成</span>
+    </div>
+    <div class="bar"><i style="width:100%"></i></div>
+    <p class="progress-note">🎉 九步路线 + 热身卡全部完成（09-29 收官，v2.6.4）——需求描述 → AI 生成 → 调试排障 → 分步迭代，一路走来全程练习模式</p>
+  </div>
+
+  <div class="callout info">
+    <span>💡</span>
+    <div><b>项目已收官</b> 九步学习路线于 <b>09-29 全部完成</b>（v2.6.4）。在本文件夹打开 ZCode 仍会自动读取 <span class="mono">AGENTS.md</span>：可以继续给 todo.html 提优化需求，或说<i>「开新练习项目」</i>（候选：记账本）用同样的「提需求 → 确认 → 实现 → 验收」节奏再练一轮。提醒：待办数据存在浏览器 localStorage，不随文件同步；再换设备前先在应用内「导出数据」，把 JSON 放进本文件夹随同步带走。</div>
+  </div>
+</header>
+
+<!-- ================= 学习地图 ================= -->
+<section id="map">
+  <div class="sec-tag">LEARNING MAP</div>
+  <h2>学习地图：一路是怎么走过来的</h2>
+  <p class="sec-desc">按时间顺序，四个阶段串起一条主线：<b>把需求说清楚 → 让 AI 生成 → 出问题会调试 → 分小步持续迭代</b>。</p>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-date">2026-09-08 ｜ 阶段①</div>
+      <div class="tl-title">第一个完整作品：计算器 <span class="file">calculator.html</span></div>
+      <div class="tl-body">练习「把需求描述清楚，让 ZCode 从零生成一个完整网页应用」。学会了需求里该写什么：布局、交互规则、边界情况。</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">2026-09-09 ｜ 阶段②</div>
+      <div class="tl-title">调试练习：台账统计脚本 <span class="file">ledger_stats.py</span></div>
+      <div class="tl-body">拿着一段故意藏了 bug 的 Python 脚本，练习「向 ZCode 报告问题、让它定位并修复」。体会到显性 bug 与隐性 bug 的区别。参考答案 09-22 补齐。</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">2026-09-14 ｜ 阶段③</div>
+      <div class="tl-title">主项目：待办清单 第 1~4 步 <span class="file">todo.html</span></div>
+      <div class="tl-body">核心练习「分步迭代开发」：每一步只提一个小需求、验证一次、再走下一步。四步走完，得到一个带标签、筛选、日期、导入导出的完整应用。</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">2026-09-22 ｜ 阶段④</div>
+      <div class="tl-title">建立学习档案 + 一次真实排障 + 模式调整</div>
+      <div class="tl-body">三件事：① 建立本学习总览，进度从此有档可查；② 排查了「导入导出」的困惑（结论见<a class="link" href="#caselog">问题档案</a>，不是功能 bug）；③ 学习模式调整——第 5 步曾由 ZCode 代做，应用户要求<b>已完整回退</b>，此后练习步骤由本人完成。</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">2026-09-24 ｜ 练习模式实战</div>
+      <div class="tl-title">热身卡：导入导出加固（本人提需求，ZCode 实现）</div>
+      <div class="tl-body">第一次完整走练习流程：本人提出三组升级需求（按勾选导出、认证码、导入验证与覆盖 / 追加模式），ZCode 复述确认后实现，本人逐条验收通过（含认证码实测拒篡改）；验收后追加删除确认弹窗与 BOM 兼容，热身卡收官；并应本人要求把「界面与交互优化」加入路线（扩为九步）。同日第 5 步搜索：本人独立写出七条需求（含高亮加分项、明确暂缓统计项），实现后验收通过，五步收官。随后进入第 6 步：本人绘制布局图提出四区重构七条需求，批次一（布局重构）当日实现并验收通过；同日批次 1.5 七项微调（优先改名、开发信息、缩放对齐、色点饱和度、简述双击、标签限 6 字、按钮改名）实现待验收；批次二（统计弹窗 + 标签管理）待做。当日尾声：导出完整对话记录（对话记录-2026-09-24.md），学习准备转移到新设备继续——批次 1.5 将在新设备上验收。</div>
+    </div>
+    <div class="tl-item now">
+      <div class="tl-date">2026-09-28 ｜ 新设备续学 · 第 6 步收官</div>
+      <div class="tl-title">批次 1.5 验收 + 批次二（标签统计与标签管理）</div>
+      <div class="tl-body">经坚果云同步在新设备接续（流程已验证跑通）。本人验收批次 1.5 七项微调通过；批次二先由本人就四个开放细节拍板（删除在用标签双重确认后<b>只摘标签、事项保留</b>；换色用 <b>8 色色板</b>；统计弹窗给<b>总数 + 未完成/已完成分项小字</b>；管理弹窗用「修改 / 颜色 / 删除」布局），ZCode 实现并先在独立环境自测（旧数据迁移、双重确认文案、筛选联动、真实备份兼容），本人验收通过，<b>第 6 步收官</b>。版本升至 2.1.0（标签管理版）：标签库由字符串数组升级为 <span class="mono">{name, color}</span> 对象数组，颜色自此持久化，旧数据与旧备份导入自动迁移。</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">2026-09-28 ｜ 第 7 步拖拽排序</div>
+      <div class="tl-title">拖拽排序 + 验收中两轮追加微调</div>
+      <div class="tl-body">本人就练习卡四空白点写出六条需求（「删除」下方悬停淡入的拖拽手柄、筛选中可拖改真实顺序而搜索时停用、新增仍加顶部、插入指示线、信息弹窗同步用法），ZCode 实现并自测（合成事件链全量验证拖拽逻辑；原生拖拽手感留待本人亲手验收）。验收中两轮追加：①「优先」按钮加黄星、新增「📅 截止日」筛选、事项日期图标 ⏰→📅 统一；②信息弹窗功能与用法分区后，再把「❓ 帮助」独立为右栏按钮 + 独立操作说明弹窗。全部验收通过，第 7 步收官，版本 2.2.0 → 2.2.2。</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">2026-09-28 ｜ 第 8 步深色模式</div>
+      <div class="tl-title">外观主题：五模式 + 全应用配色变量化</div>
+      <div class="tl-body">本人先以「实例选择」方式审看三套深色配色预览（ZCode 生成独立预览文件供挑选），拍板三套全要：外观面板提供<b>浅色系 / 石墨黑 / 午夜蓝 / 暖夜棕 / 随系统</b>五模式（随系统在系统深色时固定石墨黑），并补充要求所有模式下优先五角星统一黄色系。实现走这张卡的隐藏考点正路——先把全部颜色抽成 <span class="mono">:root</span> CSS 变量、深色只覆盖变量，另加 head 防闪烁脚本与标签芯片深色变体。验收通过，第 8 步收官（v2.3.0），<span class="mono">外观方案预览.html</span> 应本人要求留存作配色档案。</div>
+    </div>
+    <div class="tl-item now">
+      <div class="tl-date">2026-09-28 ~ 09-29 ｜ 第 9 步子任务（收官步）</div>
+      <div class="tl-title">子任务 + 界面统一打磨，九步路线圆满</div>
+      <div class="tl-body">本人四点拍板（子任务按钮位置与悬停显现、「文字 + 勾选 + 删除」三件事、与父任务零联动、不做旧数据兼容工程）后实现并验收。随后四轮迭代：①<b>双击编辑竞态修复</b>（编辑态全局记录，被并发的列表重渲染吞掉后自动恢复——"双击无效"的根因）；②<b>按钮布局三连调</b>（左列并排 → 右栏 → 最终锚定简述两侧外沿，与五角星 / ✕ 像素级对齐 0px，简述块让位防压盖，展开期间禁拖）；③<b>图标统一</b>（ZCode 出预览文件五组推荐 + 备选，本人逐组选定：✎ ✕ 纯图标、✨ 📤 📥、🏷️、子任务 🔽↔🔼 动态切换）；④<b>A 档 + B 档七项打磨</b>（空态引导、卡片悬停、点击区、弹窗淡入、主题切换过渡、深色卡片亮边、滚动条主题化、筛选按钮基线），另外观面板选后自动收起。版本 2.4.0 → <b>2.6.4</b>，第 9 步收官。</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">2026-09-29 ｜ 🎉 项目收官</div>
+      <div class="tl-title">待办清单 v2.6.4 · 九步全部完成</div>
+      <div class="tl-body">从 09-08 计算器起步，21 天走完三阶段 + 热身卡 + 九步主项目：<b>把需求说清楚 → 让 AI 生成 → 出问题会调试 → 分小步持续迭代</b>，全程练习模式（本人提需求并逐条验收，ZCode 复述确认后实现）。最终产出覆盖增删改查、双击编辑、标签体系（统计 / 管理 / 八色）、多维筛选、高亮搜索、拖拽排序、子任务、五套外观主题、认证码导入导出、缩放与帮助体系的完整单文件应用。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 阶段一 ================= -->
+<section id="phase1">
+  <div class="sec-tag">PHASE 1 · 2026-09-08</div>
+  <h2>阶段① 计算器：学会把需求说清楚</h2>
+  <p class="sec-desc">学习目标：<b>不写一行代码，只靠描述，让 ZCode 生成一个能用的完整应用</b>。这是和 AI 结对编程的第一课——它写得快不快取决于你说得清不清。</p>
+
+  <div class="card">
+    <h3>成果：calculator.html</h3>
+    <span class="chip blue">四则运算 + 取余</span>
+    <span class="chip blue">连续运算（12 + 3 × 4）</span>
+    <span class="chip blue">表达式回显 + 结果大字显示</span>
+    <span class="chip green">AC 清空 / ⌫ 退格</span>
+    <span class="chip green">键盘直接输入（数字 / 运算符 / Enter / Esc）</span>
+    <span class="chip orange">除零报错提示，不崩页面</span>
+    <span class="chip orange">浮点精度处理（0.1+0.2 不出现长尾）</span>
+    <p class="weak" style="margin-top:8px">双击 <span class="mono">calculator.html</span> 即可在浏览器打开使用。</p>
+  </div>
+
+  <div class="card">
+    <h3>这一阶段学到的方法</h3>
+    <ul class="feat">
+      <li><b>需求 = 布局 + 交互规则 + 边界情况。</b>只说「做个计算器」，得到的是玩具；说清「支持连续运算、除以 0 要提示错误、小数结果保留合理精度」，得到的才是工具。</li>
+      <li><b>先要最小版本，再追加要求。</b>第一版出来后，继续提「支持键盘输入」「显示历史表达式」这样的增量需求，比一次性提完所有要求更容易得到好结果。</li>
+      <li><b>验收就是自己用一遍。</b>按需求清单逐条试，发现差距就具体地告诉 ZCode「哪里和预期不符」。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 阶段二 ================= -->
+<section id="phase2">
+  <div class="sec-tag">PHASE 2 · 2026-09-09</div>
+  <h2>阶段② 台账调试：学会向 AI 报告问题</h2>
+  <p class="sec-desc">练习材料是一段「预期输出写在注释里、代码里藏着 bug」的 Python 统计脚本。任务是让 ZCode 找出问题并修复——这练的是真实工作里最高频的能力：<b>清楚地报告一个 bug</b>。</p>
+
+  <div class="card">
+    <h3>题目里的两处 bug（很好的对照样本）</h3>
+    <div class="bug-grid">
+      <div class="bug">
+        <h4><span class="chip red">显性 bug</span>一运行就报错</h4>
+        <p><span class="mono">ledger_stats.py:18</span> 把 <code class="inline">amount</code> 拼成了 <code class="inline">amout</code>，一运行立刻抛出：</p>
+        <div class="out bad">KeyError: 'amout'</div>
+        <p style="margin-top:6px">报错信息带行号、带原因，直接贴给 ZCode 就能修。</p>
+      </div>
+      <div class="bug">
+        <h4><span class="chip orange">隐性 bug</span>能跑完但结果是错的</h4>
+        <p><span class="mono">ledger_stats.py:21</span> 在循环内部把 <code class="inline">office_total</code> 重置为 0，导致办公小计只等于最后一条办公记录（33.0），而不是 198.5。</p>
+        <div class="out bad">办公类小计：33.00 元 ← 错</div>
+        <div class="out good">办公类小计：198.50 元 ← 对</div>
+      </div>
+    </div>
+    <p class="weak">显性 bug 等着你，隐性 bug 才考验人——它不报错，只有对照「预期输出」才能发现。</p>
+  </div>
+
+  <div class="card">
+    <h3>向 ZCode 报 bug 的黄金结构</h3>
+    <p>这个练习形成的固定套路，09-22 在「导入导出」排查里（见<a class="link" href="#caselog">问题档案</a>）真的用上了：</p>
+    <ul class="feat">
+      <li><b>现象</b>：实际发生了什么（报错原文 / 错误的输出值）</li>
+      <li><b>预期</b>：应该是什么（题目注释里写的预期输出就是现成的预期）</li>
+      <li><b>复现</b>：怎么触发（运行 <span class="mono">python ledger_stats.py</span>）</li>
+    </ul>
+    <p class="weak" style="margin-top:6px">参考答案 <span class="mono">ledger_stats_fixed.py</span>（09-22 补）运行验证通过：总金额 1662.50、办公小计 198.50、平均单笔 277.08。原题文件保留 bug 状态，方便随时重练。</p>
+  </div>
+</section>
+
+<!-- ================= 阶段三 ================= -->
+<section id="phase3">
+  <div class="sec-tag">PHASE 3 · 2026-09-14</div>
+  <h2>阶段③ 待办清单：八步路线走完前四步</h2>
+  <p class="sec-desc">主项目 <span class="mono">todo.html</span>，核心练习「分步迭代」：不要求一步到位，每一步提一个明确的小需求，让 ZCode 在<b>已有代码上</b>修改——这才是日常开发的真实形态。</p>
+
+  <div class="callout warn">
+    <span>📌</span>
+    <div>原始的分步清单当时没有存档，下表的第 1~4 步划分是<b>依据代码功能分层反推重建</b>的，与当年实际节奏可能略有出入，但功能归属准确。</div>
+  </div>
+
+  <div class="card">
+    <h3>四步演进全记录</h3>
+    <table>
+      <tr><th style="width:64px">步骤</th><th>新增功能</th><th>这一步练什么</th></tr>
+      <tr>
+        <td class="step">第 1 步</td>
+        <td>骨架：添加 / 勾选完成 / 删除，<span class="mono">localStorage</span> 自动保存，刷新不丢数据</td>
+        <td>小步启动——先让「增删改查 + 持久化」这个最小闭环跑起来</td>
+      </tr>
+      <tr>
+        <td class="step">第 2 步</td>
+        <td>状态筛选（全部 / 未完成 / 已完成 / 紧急）、标签系统（标签库、最多选 3 个、按标签筛选）、顶部统计</td>
+        <td>数据与视图分离：<span class="mono">render()</span> 统一重绘，改数据后永远只调它</td>
+      </tr>
+      <tr>
+        <td class="step">第 3 步</td>
+        <td>三种编辑方式：双击改标题、点简述区补充说明、弹窗改标签 / 日期 / 优先级</td>
+        <td>复杂交互与「坑位」：弹窗点遮罩关闭、事件冒泡要用 <span class="mono">stopPropagation</span> 拦截</td>
+      </tr>
+      <tr>
+        <td class="step">第 4 步</td>
+        <td>截止日期逾期提醒、紧急星标、界面缩放（70%~150%）、<b>导出 / 导入 JSON 备份</b></td>
+        <td>健壮性：旧数据自动补字段（<span class="mono">normalizeItem</span>）、JSON 解析包 try-catch 防脏数据</td>
+      </tr>
+    </table>
+    <p class="weak">09-14 曾有一份当场导出的备份文件（内容为空，详见<a class="link" href="#caselog">问题档案</a>），排查后已删除，重建为带数据的 <span class="mono">todo-backup-旧版样本.json</span> 供练习使用。</p>
+  </div>
+
+  <div class="card">
+    <h3>第 4 步完成时，应用已具备的能力</h3>
+    <span class="chip blue">增删改查</span>
+    <span class="chip blue">本地持久化</span>
+    <span class="chip blue">标签 + 双维度筛选</span>
+    <span class="chip blue">三种编辑方式</span>
+    <span class="chip green">逾期提醒</span>
+    <span class="chip green">紧急星标</span>
+    <span class="chip green">界面缩放</span>
+    <span class="chip green">导入 / 导出备份</span>
+    <span class="chip purple">旧数据自动兼容</span>
+  </div>
+</section>
+
+<!-- ================= 阶段四：问题档案 ================= -->
+<section id="caselog">
+  <div class="sec-tag">PHASE 4 · 2026-09-22 · 真实排障记录</div>
+  <h2>问题档案：导入导出排查实录</h2>
+  <p class="sec-desc">09-22 用户报告两个现象：「导出的 json 无法正常打开」「导入之前导出的 json 显示数据为空」。这是第一次<b>用自己的应用出了真问题、按阶段②的方法排查</b>——结论：两件事都不是功能 bug，但都暴露了值得改进的地方。</p>
+
+  <div class="card">
+    <h3>排查三步（方法本身就是阶段②的套路）</h3>
+    <table>
+      <tr><th style="width:150px">步骤</th><th>做了什么</th><th>发现</th></tr>
+      <tr>
+        <td><b>① 查证据文件</b></td>
+        <td>用 Python 解析那份 09-14 导出的备份 JSON</td>
+        <td>文件是<b>合法 JSON</b>，但内容本身就是空的：<span class="mono">items: []、tagBank: []</span>——导出那一刻浏览器里就没有数据</td>
+      </tr>
+      <tr>
+        <td><b>② 走查导出代码</b></td>
+        <td>检查 <span class="mono">exportBtn</span> 的处理逻辑</td>
+        <td>导出读取的数组和列表显示的是<b>同一个 <span class="mono">items</span></b>——只要列表里有数据，导出文件就一定有数据，代码没有会导出空文件的路径</td>
+      </tr>
+      <tr>
+        <td><b>③ 走查导入代码</b></td>
+        <td>检查 <span class="mono">importFile</span> 的处理逻辑</td>
+        <td>导入按设计<b>「覆盖当前全部数据」</b>——导入空备份 = 把列表清成空。确认框其实提示过「将导入 0 条待办」</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>两个现象的结论</h3>
+    <div class="bug-grid">
+      <div class="bug">
+        <h4>「无法正常打开」</h4>
+        <p>文件本身没问题（合法 JSON、UTF-8 编码）。最可能的两个原因：</p>
+        <p>· <b>Windows 没给 .json 关联默认打开程序</b>——双击弹出「你要如何打开这个文件」。右键文件 → 打开方式 → 选记事本 / VS Code / 浏览器，勾选「始终使用此应用」即可。</p>
+        <p>· <b>编辑器按 GBK（ANSI）解码</b>——文件是 UTF-8 无 BOM，个别中文编辑器会把中文显示成乱码。用记事本（Win10 自带版）或 VS Code 打开都正常。</p>
+        <p>· <b>下载文件被安全设置拦截</b>（09-24 验收时实证）：浏览器下载的文件带「来自 Internet」标记（MOTW），安全设置严格时双击会提示「Internet 安全设置已阻止打开此文件」。右键文件 → 属性 → 勾选「解除锁定」→ 确定即可。此拦截<b>不影响应用导入</b>（导入直接读取文件内容，不走该检查）。</p>
+      </div>
+      <div class="bug">
+        <h4>「导入后数据为空」</h4>
+        <p>那份备份导出时就是空的。为什么当时会导出空的？最可能：<b>导出功能刚做完（15:16），六分钟后（15:22）在一个没有数据的浏览器环境里试了一下导出</b>——比如另一个浏览器、或还没录入待办的新窗口。</p>
+        <p>⚠️ 如果后来在常用浏览器里<b>确认导入了这份空备份</b>，原有待办已被覆盖。localStorage 没有回收站，无法恢复——这正是热身卡要加固的第一件事。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>背后值得记住的知识点：localStorage 按「源」隔离</h3>
+    <p>浏览器里 localStorage 不是「一台电脑一个仓库」，而是<b>每个浏览器 × 每个来源（origin）各一个独立仓库</b>：</p>
+    <ul class="feat">
+      <li>双击打开 todo.html（来源是 <span class="mono">file://</span>）和通过本地服务打开（来源是 <span class="mono">http://127.0.0.1</span>）——<b>两套完全独立的存储</b></li>
+      <li>Chrome 里的数据和 Edge 里的数据，互不相通；无痕窗口又是一套全新的</li>
+    </ul>
+    <p class="weak">这解释了「为什么在这个窗口里有待办、换个窗口就没有」——数据没丢，只是去了另一个仓库。导入导出功能正是为了在这种时刻搬家用的。</p>
+  </div>
+
+  <div class="card">
+    <h3>延伸：localStorage 隔离的四个解决方向（按投入递增）</h3>
+    <table>
+      <tr><th style="width:170px">方案</th><th>做法</th><th>效果与代价</th></tr>
+      <tr>
+        <td><b>① 固定入口</b><br><span class="weak">零代码，立刻可用</span></td>
+        <td>选定一个主力浏览器，永远用同一种方式打开（建议一直双击，并把 .html 的默认打开方式设成它）</td>
+        <td>数据固定在一个仓库里，困惑消失；换电脑 / 重装浏览器时仍要靠导出导入</td>
+      </tr>
+      <tr>
+        <td><b>② 用足导出</b><br><span class="weak">现有功能</span></td>
+        <td>把「导出数据」当存档习惯，重要改动后顺手导出一份</td>
+        <td>零成本当保险；靠自觉，不适合当日常同步手段</td>
+      </tr>
+      <tr>
+        <td><b>③ 数据落到文件</b><br><span class="weak">File System Access API</span></td>
+        <td>页面经授权后直接读写磁盘上一个 JSON 数据文件，替代 localStorage</td>
+        <td>数据跟着文件走，换浏览器也能接着用；仅 Chrome / Edge 支持，首次需选一次文件授权，复杂度中等——可作第 8 步后的进阶练习卡</td>
+      </tr>
+      <tr>
+        <td><b>④ 加个小后端</b><br><span class="weak">下一个学习项目候选</span></td>
+        <td>用 Python 起一个小服务（Flask 几十行），数据存服务端，页面统一从 <span class="mono">http://127.0.0.1</span> 打开</td>
+        <td>数据只有一份、所有浏览器看到同一份——所有网站的真实工作方式；投入最大，但正好衔接八步完成后的新项目，用上阶段②的 Python 基础</td>
+      </tr>
+    </table>
+    <p class="weak" style="margin-top:8px">推荐组合：<b>现在用 ①+②</b>（零成本解决 90% 的困惑）；<b>八步练完把 ④ 当下一个项目</b>（可与「记账本」合并为带后端的应用）；③ 看兴趣插入。隔离本身是浏览器的安全设计，无法直接「打通」——只能统一入口、把数据搬出浏览器、或手动搬运，以上四案分属这三条思路。</p>
+  </div>
+
+  <div class="callout ok">
+    <span>🔧</span>
+    <div><b>改进方向</b>（已做成<a class="link" href="#roadmap">热身练习卡</a>）：导出前发现没数据要提醒；导入空备份前要警告「将清空当前 N 条」；顺带兼容带 BOM 的文件。</div>
+  </div>
+</section>
+
+<!-- ================= 练习路线 ================= -->
+<section id="roadmap">
+  <div class="sec-tag">PHASE 5 · 待完成 · 练习卡模式</div>
+  <h2>练习路线：六张卡，从热身到收官</h2>
+  <p class="sec-desc">从现在起，每一步由<b>你向 ZCode 提需求</b>来完成——这正是检验前四个阶段所学沟通方法的机会。每张卡给出目标、需求怎么开口、做到什么程度算完成；ZCode 负责实现后的验收和复盘。</p>
+
+  <div class="card exercise warm">
+    <div class="ex-head"><span class="chip orange">热身卡</span><b>加固导入导出（从问题档案来）</b></div>
+    <p class="weak">三个小改动，直接回应 09-22 排查出的问题。改动小、意义实，适合作为回归练习的第一口。</p>
+    <p class="weak">📦 <b>09-24 进展</b>：本人提出升级版需求并已实现——① 弹窗勾选导出（全选 / 全部取消 / 禁止空导出，只带出被选事项用到的标签）；② 导出文件带认证码（固定盐 + FNV-1a 内容哈希，防误改不防伪造，换设备仍有效）；③ 导入先验认证码，旧版无码文件询问后放行，空文件拦截，可选覆盖（清空后导）或追加（合并去重、id 冲突自动换新）；验收通过后补充<b>删除待办确认弹窗</b>。<b>BOM 兼容已同日补齐</b>（导入前剥离开头 \ufeff），验收 10 条全数通过——认证码防线经实测有效（改一字导入被拒）。</p>
+    <dl>
+      <dt>练什么</dt><dd>把一次排障的结论转化成防再犯的代码；体验「空数据 / 空备份」这类边界情况的防御式处理</dd>
+      <dt>怎么开口</dt><dd>「改进 todo.html 的导入导出：① 点导出时如果没有任何待办和标签，先弹确认框提示『当前没有数据，导出的将是空备份』，确认后才下载；② 导入时如果备份里是 0 条待办，确认框要警告『该备份为空，导入将清空当前全部数据』并显示当前有多少条；③ 导入解析 JSON 前先去掉开头的 BOM 字符（\ufeff），防止被部分编辑器另存过的文件导入失败。」</dd>
+      <dt>验收标准</dt><dd>空数据时点导出出现提醒；导入 <span class="mono">todo-backup-旧版样本.json</span>（3 条）正常合并；把样本文件用记事本另存为「UTF-8 带 BOM」后再导入也不报错</dd>
+      <dt>加分挑战</dt><dd>导出的文件名里带上条数，如 <span class="mono">todo-backup-…-12条.json</span>，一眼识别空备份</dd>
+    </dl>
+  </div>
+
+  <div class="card exercise">
+    <div class="ex-head"><span class="chip blue">第 5 步</span><b>关键词搜索</b></div>
+    <p class="weak">难度适中、效果直观，是练习「写清需求」的最佳一步。</p>
+    <p class="weak">📦 <b>09-24 进展</b>：本人独立提出七条需求（搜索框位于筛选区右侧、在筛选范围内叠加检索、输入即时匹配标题+简述不分大小写、空态浅色小字提示、Esc/× 清空、<b>命中关键词高亮</b>；统计加分项按本人决定暂缓），ZCode 复述确认后实现，本人验收通过（09-24）。高亮用 DOM 节点拼接实现（<span class="mono">&lt;mark&gt;</span> 包裹命中片段），不做字符串拼接，防关键词中的 HTML 字符被执行。</p>
+    <dl>
+      <dt>练什么</dt><dd>描述一个功能的完整行为：触发方式、匹配范围、与其他功能（筛选）的关系、无结果时的表现</dd>
+      <dt>怎么开口</dt><dd>「给待办清单加关键词搜索：在筛选栏上方加一个搜索框，输入时即时过滤列表（不用按回车）；匹配范围是标题和简述，大小写不敏感；搜索条件和状态筛选、标签筛选同时生效；没有匹配时显示『没有匹配「关键词」的事项』而不是『暂无事项』；按 Esc 清空搜索框。」</dd>
+      <dt>验收标准</dt><dd>输入即时过滤；标题和简述都能搜到；与筛选叠加正确；空态提示有区分；Esc 清空后列表恢复</dd>
+      <dt>加分挑战</dt><dd>搜索时统计栏显示「匹配 N / 共 M 项」；关键词高亮显示</dd>
+      <dt>提示</dt><dd>技术关键词：<span class="mono">input 事件、toLowerCase、includes</span>。09-22 ZCode 曾按这张卡的验收标准做过一版并经浏览器实测通过后<b>应用户要求回退</b>——照这张卡提需求可以一次通过，放心。</dd>
+    </dl>
+  </div>
+
+  <div class="card exercise">
+    <div class="ex-head"><span class="chip orange">第 6 步 · 09-24 新增</span><b>界面与交互整体优化</b></div>
+    <p class="weak">应用功能已成型，但「好不好看、顺不顺手」还没正经打磨过——这一步专门补上（应用本人要求加入计划）。</p>
+    <p class="weak">📦 <b>09-24 进展</b>：本人绘制四区布局图（顶部信息 / 左侧标签 / 中部显示 / 右侧按钮）并直接提出七条完整需求。分两批实现：<b>批次一（第 1~6 条，四区布局重构）已验收通过</b>；随后本人提七项微调（紧急→优先、开发信息弹窗、缩放面板与按钮持平、标签色点饱和度与未使用分组、简述改双击编辑、标签限 6 字并调左栏宽度、统计按钮改名标签统计）已实现待验收；批次二（第 7 条：标签统计弹窗 + 标签管理，删除在用标签需双重确认并展示未完成 / 已完成 / 优先分项）待做。窄屏（≤760px）自动折叠为横条保持手机可用。</p>
+    <p class="weak">📦 <b>09-28 进展</b>：新设备验收批次 1.5 通过。批次二由本人四点拍板后实现（① 删除在用标签双重确认通过后只摘标签、事项保留；② 换色用 8 色色板；③ 统计弹窗显示总数 + 未完成/已完成分项小字，在用降序、未使用垫底；④ 管理弹窗每行「修改 / 颜色 / 删除」，删除为永久移出标签库），<b>验收通过，第 6 步收官</b>。版本 2.1.0（标签管理版）：标签库升级为 <span class="mono">{name, color}</span> 对象数组、颜色自此持久化，旧数据与旧备份导入自动迁移；改名同步左栏 / 徽章 / 当前筛选。</p>
+    <dl>
+      <dt>练什么</dt><dd>从使用者视角审视产品：把「感觉糟糕」翻译成具体、可执行的问题清单，再逐项改善；CSS 布局与视觉层次</dd>
+      <dt>怎么开口</dt><dd>先自己把整个应用用一遍，写下 3~5 个最不爽的点（例：添加区表单太挤 / 列表操作按钮不明显 / 手机宽度没法用 / 颜色不统一），然后说：「这是我在使用中发现的 N 个体验问题：……。请先给我一份优化方案，分布局、操作流程、视觉三块，我确认后再动手，按方案分批改，不要一次全改。」</dd>
+      <dt>验收标准</dt><dd>自己列的痛点清单逐条改善；窗口缩到手机宽度（约 375px）仍可正常使用；核心流程（添加 → 筛选 → 完成 → 编辑 → 删除）一气呵成不用翻找</dd>
+      <dt>加分挑战</dt><dd>常用操作加过渡动画；空状态给引导文案而不是干巴巴一句「暂无事项」</dd>
+      <dt>提示</dt><dd>让 ZCode 先把颜色抽成 CSS 变量、统一间距和圆角体系——这套结构会被第 8 步深色模式直接复用，一举两得</dd>
+    </dl>
+  </div>
+
+  <div class="card exercise">
+    <div class="ex-head"><span class="chip green">第 7 步</span><b>拖拽排序</b></div>
+    <p class="weak">按住事项拖动，调整先后顺序。主项目步骤中难度最高，放到搜索和界面优化之后。</p>
+    <p class="weak">📦 <b>09-28 进展</b>：本人就练习卡的四个思考点写出六条需求（拖拽手柄在「删除」下方、悬停淡入、抓手光标；筛选中可拖且改真实顺序、搜索时停用；新增仍加顶部；插入指示线；信息弹窗同步），实现后又在验收中追加两轮微调（优先按钮黄星、「📅 截止日」筛选与 ⏰→📅 图标统一；「❓ 帮助」独立为右栏按钮 + 操作说明弹窗），全部验收通过，<b>第 7 步收官</b>（v2.2.2）。实现方式：手柄按下时才启用行 <span class="mono">draggable</span>，<span class="mono">dragover</span> 按上/下半区画指示线，drop 时在全量数组里搬位置（真实顺序），<span class="mono">persist()</span> 免费持久化。</p>
+    <dl>
+      <dt>练什么</dt><dd>向 AI 描述「看不见摸不着」的交互细节；分阶段验收复杂功能</dd>
+      <dt>怎么开口</dt><dd>「给待办列表加拖拽排序：鼠标按住某条事项可以上下拖动，松手后顺序保留，刷新页面顺序不丢。先做鼠标版，触屏以后再说。」</dd>
+      <dt>验收标准</dt><dd>拖动时有视觉反馈（如边框变色）；松手后顺序立即生效；刷新后顺序保留；与筛选、搜索不冲突</dd>
+      <dt>加分挑战</dt><dd>拖到目标位置时显示插入指示线；给每条加序号</dd>
+      <dt>提示</dt><dd>技术关键词是 <span class="mono">dragstart / dragover / drop</span> 事件；顺序持久化其实免费——<span class="mono">persist()</span> 本来就保存整个数组</dd>
+    </dl>
+  </div>
+
+  <div class="card exercise">
+    <div class="ex-head"><span class="chip purple">第 8 步</span><b>深色模式</b></div>
+    <p class="weak">一键切换明暗两套配色。中等难度，重点在「重构」而不在「新功能」。</p>
+    <p class="weak">📦 <b>09-28 进展</b>：本人先用 ZCode 生成的配色预览文件以实例方式挑选深色方案，拍板三套全要，扩为<b>五模式</b>（浅色系 / 石墨黑 / 午夜蓝 / 暖夜棕 / 随系统，随系统深色固定石墨黑、默认浅色），并补充「所有模式下优先五角星统一黄色系」。ZCode 按卡片提示的正路实现（全部颜色抽 <span class="mono">:root</span> 变量、深色仅覆盖变量、head 防闪烁、芯片深色变体、随系统实时跟随），自测五模式/持久化/auto 分支后本人验收通过，<b>第 8 步收官</b>（v2.3.0）。</p>
+    <dl>
+      <dt>练什么</dt><dd>让 AI 做不改变功能的改造（把写死的颜色抽成 CSS 变量）；偏好持久化</dd>
+      <dt>怎么开口</dt><dd>「加一个深色模式开关：点击在明暗两套主题间切换，选择存 localStorage，刷新后保持。要求所有卡片、输入框、标签、弹窗都适配，不留刺眼的白块。」</dd>
+      <dt>验收标准</dt><dd>两种主题下所有组件正常显示；开关状态刷新不丢；标签彩色芯片在深色下仍可辨识</dd>
+      <dt>加分挑战</dt><dd>跟随系统偏好（<span class="mono">prefers-color-scheme</span>）作为默认值；加平滑过渡动画</dd>
+      <dt>提示</dt><dd>正确做法是先让 ZCode 把颜色抽成 <span class="mono">:root</span> 变量再换肤——可以观察它是否会主动提出这一步</dd>
+    </dl>
+  </div>
+
+  <div class="card exercise">
+    <div class="ex-head"><span class="chip gray">第 9 步</span><b>子任务（收官）</b></div>
+    <p class="weak">每条待办下面挂小步骤，显示完成进度。数据结构升级，呼应第 4 步的兼容话题。</p>
+    <p class="weak">📦 <b>09-28~29 进展</b>：本人四点拍板（按钮在星标下方悬停显现、「文字 + 勾选 + 删除」三件事、不与父任务联动、无须兼容旧数据）后实现验收。验收后四轮迭代：双击编辑竞态修复（编辑态全局记录）；按钮布局三连调至<b>像素级对齐</b>（子任务与五角星、拖拽与 ✕ 均 0px，简述让位防压盖，展开期间禁拖）；<b>图标统一五组选型</b>（ZCode 出预览、本人逐组选定，✎ ✕ / ✨ 📤 📥 / 🏷️ / 🔽↔🔼）；A 档 + B 档七项界面打磨。v2.4.0 → 2.6.4，<b>第 9 步收官，九步全部完成</b>。</p>
+    <dl>
+      <dt>练什么</dt><dd>数据结构演进；旧数据兼容（<span class="mono">normalizeItem</span> 的思路再升级）</dd>
+      <dt>怎么开口</dt><dd>「给每条待办支持子任务：可添加 / 勾选 / 删除子任务，可全部展开收起，标题旁显示进度（如 2/5）。旧数据没有子任务字段要能正常打开。」</dd>
+      <dt>验收标准</dt><dd>子任务增删改可用；父任务显示进度；导入 <span class="mono">todo-backup-旧版样本.json</span> 不报错（它的第 3 条故意用了最老的 <span class="mono">tag</span> 字段格式，是现成的旧数据测试样本）</dd>
+      <dt>加分挑战</dt><dd>全部子任务完成时父任务自动打勾；导出文件版本号升级（<span class="mono">version: 2</span>）</dd>
+    </dl>
+  </div>
+
+  <div class="callout ok">
+    <span>🎯</span>
+    <div><b>🎉 九步已全部完成（09-29）！</b>这个待办清单覆盖了前端小应用最典型的一组能力：数据持久化、多维筛选、搜索、界面打磨、复杂交互、主题化、数据结构演进。下一步可以开一个新练习项目（比如「记账本」），把这套「提需求 → 复述确认 → 实现 → 亲自验收 → 归档」的节奏自己跑一遍——想开始时说「开新练习项目」即可。</div>
+  </div>
+</section>
+
+<!-- ================= 心得 ================= -->
+<section id="tips">
+  <div class="sec-tag">METHODS</div>
+  <h2>心得与方法：沉淀的六条</h2>
+
+  <div class="card">
+    <h3>1. 好需求 = 背景 + 目标 + 验收标准 + 约束</h3>
+    <div class="vs">
+      <div class="box bad-box">
+        <h4>✗ 模糊的需求</h4>
+        「给待办加个搜索」<br><span class="weak">——搜什么？怎么触发？和筛选什么关系？全靠 AI 猜，返工率高。</span>
+      </div>
+      <div class="box good-box">
+        <h4>✓ 清晰的需求</h4>
+        「加关键词搜索：输入即时过滤；匹配标题和简述；与状态、标签筛选叠加生效；无结果时给专门提示。」<br><span class="weak">——每一条都可直接验收。</span>
+      </div>
+    </div>
+    <p class="weak">第 5 步练习卡里的需求话术就是按这个结构写的，照着改造成自己的话即可。</p>
+  </div>
+
+  <div class="card">
+    <h3>2. 小步迭代，每步可验证</h3>
+    <p>todo 项目八步走，每步只加一块能力、验收一次。比起「一口气做个完整应用」，小步的好处是：<b>错了立刻知道错在哪一步</b>，而且每一步的代码改动小到能看懂。</p>
+  </div>
+
+  <div class="card">
+    <h3>3. 让 ZCode 自己证明「能用」</h3>
+    <p>口说无凭，跑起来算数：Python 脚本就运行看输出（阶段②），网页就开浏览器实际操作。验收动作本身可以让 ZCode 代劳——报错原文和实测结果，比「应该可以了」可信一百倍。09-22 的排障也是同一逻辑：先解析文件拿证据，再走查代码下结论。</p>
+  </div>
+
+  <div class="card">
+    <h3>4. 报 bug 的固定结构：现象 + 预期 + 复现</h3>
+    <p>阶段②练出、阶段④实战的套路。特别注意<b>隐性 bug</b>：程序不报错但结果不对（比如空备份导入后列表悄悄变空），这时「预期行为」是唯一的裁判——所以写需求时顺手写清预期，将来就是验收依据。</p>
+  </div>
+
+  <div class="card">
+    <h3>5. 改数据前想着「另一边」</h3>
+    <p>两个真实教训：① 改数据结构时想着旧数据——todo 项目从 <span class="mono">tag</span> 演进到 <span class="mono">tags</span>、新增字段，都靠 <span class="mono">normalizeItem</span> 平稳过渡；② 改数据内容前先备份——导入空备份会覆盖现有数据且无法恢复。AI 助手再聪明，也替你兜不住「没备份」。</p>
+  </div>
+
+  <div class="card">
+    <h3>6. 学习材料本身也要「持久化」，练习要亲手做</h3>
+    <p>两个 09-22 的领悟：中断八天只能靠代码反推进度，所以有了这份总览——<b>存档即进度</b>；第 5 步被 ZCode 代做后发现「看完不等于学会」，所以转为练习卡模式——<b>ZCode 负责示范方法和验收，动手的留给本人</b>。</p>
+  </div>
+</section>
+
+<!-- ================= 文件清单 ================= -->
+<section id="files">
+  <div class="sec-tag">APPENDIX</div>
+  <h2>文件夹清单：十个文件各是什么</h2>
+  <div class="card">
+    <table>
+      <tr><th>文件</th><th style="width:88px">日期</th><th>角色</th><th style="width:130px">状态</th></tr>
+      <tr>
+        <td class="mono">calculator.html</td><td>09-08</td>
+        <td>阶段①成品：计算器应用</td>
+        <td><span class="chip green">可用</span></td>
+      </tr>
+      <tr>
+        <td class="mono">ledger_stats.py</td><td>09-09</td>
+        <td>阶段②<b>题目</b>：藏 bug 的台账脚本（刻意保留 bug 状态供重练）</td>
+        <td><span class="chip orange">含 bug · 即题目</span></td>
+      </tr>
+      <tr>
+        <td class="mono">ledger_stats_fixed.py</td><td>09-22</td>
+        <td>阶段②参考答案：两处 bug 的修复版，逐行注释说明</td>
+        <td><span class="chip green">已验证</span></td>
+      </tr>
+      <tr>
+        <td class="mono">todo.html</td><td>09-14 → 09-29</td>
+        <td>主项目：待办清单应用，<b>九步路线 + 热身卡全部完成</b>（09-22 曾实现第 5 步搜索后完整回退）</td>
+        <td><span class="chip green">全部完成 · v2.6.4</span></td>
+      </tr>
+      <tr>
+        <td class="mono">todo-backup-旧版样本.json</td><td>09-22</td>
+        <td>练习用备份样本：3 条待办，第 3 条故意用最老的 <span class="mono">tag</span> 字段格式，测试热身卡和第 8 步的兼容逻辑</td>
+        <td><span class="chip gray">测试样本</span></td>
+      </tr>
+      <tr>
+        <td class="mono">事项备份/</td><td>09-24</td>
+        <td>换设备时应用内「导出数据」生成的真实备份 JSON（带认证码），新设备导入恢复</td>
+        <td><span class="chip gray">真实备份</span></td>
+      </tr>
+      <tr>
+        <td class="mono">外观方案预览.html</td><td>09-28</td>
+        <td>第 8 步配色选型文件：三套深色方案 + 浅色对照，同款组件并排渲染；选型完成后应本人要求留存作配色档案</td>
+        <td><span class="chip gray">配色档案</span></td>
+      </tr>
+      <tr>
+        <td class="mono">图标方案预览.html</td><td>09-29</td>
+        <td>第 9 步图标选型文件：五组位置各给推荐 + 备选并按真实按钮风格渲染，本人逐组选定后统一落地</td>
+        <td><span class="chip gray">图标档案</span></td>
+      </tr>
+      <tr>
+        <td class="mono">对话记录-2026-09-24.md</td><td>09-24</td>
+        <td>旧设备最后会话的可读导出（本人原话 + ZCode 回复），第 6 步批次一 / 1.5 的需求与验收记录备查</td>
+        <td><span class="chip gray">存档</span></td>
+      </tr>
+      <tr>
+        <td class="mono">学习总览.html</td><td>09-28</td>
+        <td>本文档：完整学习档案 + 问题档案 + 练习路线</td>
+        <td><span class="chip blue">随进度更新</span></td>
+      </tr>
+      <tr>
+        <td class="mono">AGENTS.md</td><td>09-28</td>
+        <td>ZCode 会话须知：任何设备的 ZCode 打开本文件夹都会自动读取，据此接续进度、遵守练习模式——跨设备续练的关键文件</td>
+        <td><span class="chip blue">随文件夹同步</span></td>
+      </tr>
+      <tr>
+        <td class="mono">对话记录-2026-09-24.md</td><td>09-24</td>
+        <td>本会话（09-22 ~ 09-24）完整对话导出：16 轮用户需求原话、ZCode 回复与验收清单——换设备交接用</td>
+        <td><span class="chip gray">会话档案</span></td>
+      </tr>
+    </table>
+    <p class="weak" style="margin-top:8px">使用提示：html 文件双击即可以浏览器打开；<span class="mono">ledger_stats.py</span> 用 <span class="mono">python ledger_stats.py</span> 运行。所有 html 均为单文件、无外部依赖，可直接拷走使用。<span class="mono">.json</span> 文件右键 → 打开方式 → 记事本即可查看。</p>
+  </div>
+</section>
+
+<footer>
+  ZCode 学习案例 · 学习总览 ｜ 由 ZCode 协助整理于 2026-09-22 ｜ 下一次更新点：热身卡或第 5 步（你亲手）完成时
+</footer>
+
+</div>
+</body>
+</html>

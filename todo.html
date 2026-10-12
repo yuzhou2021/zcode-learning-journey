@@ -1,0 +1,2010 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>待办清单</title>
+<script>
+  // 第 8 步:尽早应用已保存的外观主题,避免深色用户刷新时先看到一帧白色闪烁
+  (function () {
+    var m = localStorage.getItem('todo-ui-theme');
+    var t = (m === 'graphite' || m === 'midnight' || m === 'warm') ? m
+          : (m === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches ? 'graphite' : 'light');
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* ---------- 第 8 步:外观主题——全部颜色抽成变量,深色主题只覆盖变量 ---------- */
+  :root {
+    --bg: #f2f4f7; --panel: #fff; --card: #fff; --card-hover: #fafcfe; --input: #fff;
+    --border: #e4e8ee; --border2: #d0d5dd; --border3: #cfd6e0;
+    --text1: #1a2233; --text2: #667085; --text3: #98a2b3;
+    --primary: #2b5cd9; --primary-hover: #2450bf; --primary-fg: #fff;
+    --soft: #eef1f5; --soft-hover: #e2e7ee; --soft2: #f8f9fb;
+    --hover: #f2f5fa; --active: #e0eaff; --active-fg: #2b5cd9;
+    --danger: #c24545; --danger-soft: #f9e9e9;
+    --star: #ffc400; --star-off: #d6dae1; --star-hover: #a8b0bc;
+    --mark-bg: #fff3bf; --mark-fg: inherit;
+    --shadow: 0 1px 3px rgba(0,0,0,.05);
+    --shadow-pop: 0 8px 24px rgba(0,0,0,.12);
+    --shadow-modal: 0 12px 40px rgba(0,0,0,.18);
+    --mask: rgba(26,34,51,.4);
+  }
+  /* 石墨黑(参考 Edge / Chrome 深色) */
+  html[data-theme="graphite"] {
+    --bg: #1f1f1f; --panel: #262626; --card: #2b2b2b; --card-hover: #303030; --input: #373737;
+    --border: #3a3a3a; --border2: #454545; --border3: #525252;
+    --text1: #f1f3f4; --text2: #9aa0a6; --text3: #71767b;
+    --primary: #8ab4f8; --primary-hover: #aecbfa; --primary-fg: #202124;
+    --soft: #3c4043; --soft-hover: #474a4e; --soft2: #323436;
+    --hover: #333336; --active: #39527d; --active-fg: #8ab4f8;
+    --danger: #e57373; --danger-soft: #4a2f2f;
+    --star: #ffc400; --star-off: #4a4d52; --star-hover: #7d8288;
+    --mark-bg: #5c5220; --mark-fg: #ffe08a;
+    --shadow: 0 1px 3px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.045);
+    --shadow-pop: 0 8px 24px rgba(0,0,0,.5);
+    --shadow-modal: 0 12px 40px rgba(0,0,0,.55);
+    --mask: rgba(0,0,0,.55);
+  }
+  /* 午夜蓝(Tailwind Slate 系) */
+  html[data-theme="midnight"] {
+    --bg: #0f172a; --panel: #161e31; --card: #1e293b; --card-hover: #223251; --input: #2a3850;
+    --border: #2c3a52; --border2: #3b4a63; --border3: #4b5b76;
+    --text1: #e2e8f0; --text2: #94a3b8; --text3: #64748b;
+    --primary: #60a5fa; --primary-hover: #93c5fd; --primary-fg: #0f172a;
+    --soft: #334155; --soft-hover: #3e4c61; --soft2: #22304a;
+    --hover: #243247; --active: #24406e; --active-fg: #60a5fa;
+    --danger: #f87171; --danger-soft: #452a2e;
+    --star: #ffc400; --star-off: #3b4a63; --star-hover: #5f7290;
+    --mark-bg: #665c1e; --mark-fg: #fde68a;
+    --shadow: 0 1px 3px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05);
+    --shadow-pop: 0 8px 24px rgba(0,0,0,.55);
+    --shadow-modal: 0 12px 40px rgba(0,0,0,.6);
+    --mask: rgba(2,6,23,.6);
+  }
+  /* 暖夜棕(GitHub Dark Dimmed 风) */
+  html[data-theme="warm"] {
+    --bg: #1c1917; --panel: #232019; --card: #292524; --card-hover: #2f2b28; --input: #38322c;
+    --border: #3b352f; --border2: #4a433b; --border3: #5a5248;
+    --text1: #e7e5e4; --text2: #a8a29e; --text3: #78716c;
+    --primary: #7ea6e0; --primary-hover: #a3c3ec; --primary-fg: #1c1917;
+    --soft: #3f3a34; --soft-hover: #4a433b; --soft2: #2f2b26;
+    --hover: #312c27; --active: #3c4d6b; --active-fg: #a3c3ec;
+    --danger: #e0785f; --danger-soft: #462e26;
+    --star: #ffc400; --star-off: #4a433b; --star-hover: #78716c;
+    --mark-bg: #5c4d1a; --mark-fg: #fde68a;
+    --shadow: 0 1px 3px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.04);
+    --shadow-pop: 0 8px 24px rgba(0,0,0,.5);
+    --shadow-modal: 0 12px 40px rgba(0,0,0,.55);
+    --mask: rgba(0,0,0,.55);
+  }
+
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    margin: 0;
+  }
+
+  /* ---------- 第 6 步：四区布局骨架（顶部信息 / 左标签 / 中显示 / 右按钮） ---------- */
+  .app-shell { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+  .top-bar {
+    display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+    padding: 14px 20px 12px; background: var(--panel); border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  h1 { font-size: 22px; color: var(--text1); }
+  .stats { color: var(--text2); font-size: 13px; }
+
+  .main-row { flex: 1; display: flex; min-height: 0; }
+
+  /* 左侧标签区：固定，不随列表滚动 */
+  .side-left {
+    width: 150px; flex-shrink: 0; background: var(--panel); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; padding: 12px 10px;
+  }
+  .side-title { font-size: 12.5px; color: var(--text3); font-weight: 600; padding: 0 6px 8px; }
+  .tag-zone { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+  .tag-item {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    border: none; background: none; border-radius: 8px; cursor: pointer;
+    padding: 7px 8px; font-size: 13.5px; color: var(--text1); text-align: left;
+    font-family: inherit;
+  }
+  .tag-item:hover { background: var(--hover); }
+  .tag-item.active { background: var(--active); color: var(--active-fg); font-weight: 600; }
+  .tag-item .dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .tag-item .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tag-none { font-size: 12.5px; color: var(--text3); padding: 2px 8px; }
+  .tag-group { font-size: 11.5px; color: var(--text3); padding: 8px 8px 2px; }
+  .side-foot {
+    border-top: 1px solid var(--border); margin-top: 8px; padding-top: 10px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .side-fn {
+    border: 1px solid var(--border2); background: var(--panel); border-radius: 8px;
+    font-size: 13px; color: var(--text2); padding: 7px 10px; cursor: pointer;
+    text-align: left; font-family: inherit;
+  }
+  .side-fn:hover { border-color: var(--primary); color: var(--primary); }
+
+  /* 中部待办事项显示区（主区域，只有这里滚动） */
+  .center { flex: 1; min-width: 0; overflow-y: auto; padding: 14px 18px 28px; }
+
+  /* 右侧按钮功能区：固定，不随列表滚动 */
+  .side-right {
+    width: 78px; flex-shrink: 0; background: var(--panel); border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 10px; padding: 14px 10px;
+  }
+  .rbtn {
+    border: 1px solid var(--border2); background: var(--panel); border-radius: 10px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 10px 4px; cursor: pointer; font-size: 17px; color: var(--text2);
+    font-family: inherit;
+  }
+  .rbtn span { font-size: 12px; }
+  .rbtn:hover { border-color: var(--primary); color: var(--primary); }
+  .rbtn.primary { background: var(--primary); border-color: var(--primary); color: var(--primary-fg); }
+  .rbtn.primary:hover { background: var(--primary-hover); }
+  .rbtn.foot { margin-top: auto; }
+
+  /* 开发信息弹窗 */
+  .info-row { display: flex; gap: 12px; font-size: 14px; padding: 5px 0; align-items: baseline; }
+  .info-row > span { color: var(--text2); width: 60px; flex-shrink: 0; font-size: 13px; }
+  .info-sec { font-size: 12.5px; color: var(--text3); font-weight: 600; margin: 12px 0 4px; }
+  .info-feats { list-style: none; font-size: 13.5px; color: var(--text1); }
+  .info-feats li { padding: 3px 0 3px 16px; position: relative; }
+  .info-feats li::before { content: '·'; position: absolute; left: 4px; color: var(--primary); font-weight: 700; }
+  /* 帮助弹窗的操作说明列表：内容多时自身滚动 */
+  .help-list { max-height: 300px; overflow-y: auto; padding-right: 4px; }
+  .help-list li { padding: 4px 0 4px 16px; line-height: 1.55; }
+  .help-list li b { color: var(--text1); }
+
+  /* 缩放弹出面板（原顶部缩放控件迁移至此） */
+  .zoom-pop {
+    display: none; position: fixed; top: 64px; right: 96px; z-index: 60;
+    background: var(--panel); border: 1px solid var(--border2); border-radius: 10px;
+    box-shadow: var(--shadow-pop); padding: 8px;
+    align-items: center; gap: 4px;
+  }
+  .zoom-pop.open { display: flex; }
+  .zoom-pop button {
+    border: 1px solid var(--border2); background: var(--panel);
+    border-radius: 8px; cursor: pointer;
+    font-size: 13px; padding: 4px 10px; color: var(--text2);
+  }
+  .zoom-pop button:hover { border-color: var(--primary); color: var(--primary); }
+  .zoom-pop .pct { font-size: 12px; color: var(--text3); align-self: center; min-width: 42px; text-align: center; }
+
+  /* 外观主题弹出面板(第 8 步):五个模式,当前选中高亮 */
+  .theme-pop {
+    display: none; position: fixed; top: 64px; right: 96px; z-index: 60;
+    background: var(--panel); border: 1px solid var(--border2); border-radius: 10px;
+    box-shadow: var(--shadow-pop); padding: 6px; flex-direction: column; gap: 2px;
+  }
+  .theme-pop.open { display: flex; }
+  .theme-pop button {
+    border: none; background: none; border-radius: 8px; cursor: pointer;
+    font-size: 13px; padding: 7px 14px; color: var(--text2);
+    font-family: inherit; text-align: left; min-width: 122px;
+  }
+  .theme-pop button:hover { background: var(--hover); color: var(--text1); }
+  .theme-pop button.on { background: var(--primary); color: var(--primary-fg); font-weight: 600; }
+
+  /* 窄屏：左右区收起为横向条，保持手机宽度可用 */
+  @media (max-width: 760px) {
+    .main-row { flex-direction: column; }
+    .side-left { width: auto; border-right: none; border-bottom: 1px solid var(--border); padding: 10px 12px 8px; }
+    .tag-zone { flex-direction: row; overflow-x: auto; gap: 6px; padding-bottom: 4px; }
+    .tag-item { width: auto; flex-shrink: 0; padding: 5px 10px; background: var(--soft); }
+    .tag-item.active { background: var(--primary); color: var(--primary-fg); }
+    .side-foot { flex-direction: row; border-top: none; margin-top: 6px; padding-top: 0; }
+    .side-fn { flex: 1; text-align: center; }
+    .side-right { width: auto; flex-direction: row; border-left: none; border-top: 1px solid var(--border); padding: 8px 12px; }
+    .rbtn { flex: 1; flex-direction: row; justify-content: center; gap: 6px; padding: 8px 6px; font-size: 14px; }
+  }
+
+  /* ---------- 添加区 ---------- */
+  .add-area {
+    background: var(--card); border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 14px; margin-bottom: 8px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .row1 { display: flex; gap: 10px; }
+  .row1 input {
+    flex: 1; border: 1px solid var(--border2); border-radius: 10px;
+    padding: 12px 14px; font-size: 15px; outline: none;
+    transition: border-color .15s; background: var(--input); color: var(--text1);
+  }
+  .row1 input:focus { border-color: var(--primary); }
+  .row1 button {
+    border: none; border-radius: 10px; background: var(--primary);
+    color: var(--primary-fg); font-size: 15px; padding: 0 24px; cursor: pointer;
+  }
+  .row1 button:hover { background: var(--primary-hover); }
+
+  .add-area textarea {
+    width: 100%; border: 1px solid var(--border2); border-radius: 10px;
+    padding: 10px 14px; font-size: 14px; outline: none;
+    resize: vertical; min-height: 52px; font-family: inherit;
+    transition: border-color .15s; background: var(--input); color: var(--text1);
+  }
+  .add-area textarea:focus { border-color: var(--primary); }
+
+  .row2 { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .row2 .field {
+    display: flex; align-items: center; gap: 6px;
+    border: 1px solid var(--border2); border-radius: 10px;
+    padding: 8px 12px; background: var(--input); font-size: 14px;
+  }
+  .row2 .field label { color: var(--text2); white-space: nowrap; font-size: 13px; }
+  .row2 input, .row2 select { border: none; outline: none; font-size: 14px; background: transparent; color: var(--text1); }
+  .row2 .tagbtn { cursor: pointer; color: var(--text2); display: flex; align-items: center; gap: 6px; min-height: 22px; }
+  .row2 .tagbtn .chip { display: inline-flex; }
+  .tagbtn-placeholder { color: var(--text3); }
+
+  /* ---------- 标签选择弹层 ---------- */
+  .tag-picker-wrap { position: relative; }
+  .tag-picker {
+    display: none;
+    position: absolute; top: 6px; left: 0;
+    background: var(--panel); border: 1px solid var(--border2);
+    border-radius: 10px; box-shadow: var(--shadow-pop);
+    padding: 12px; width: 340px; z-index: 10;
+  }
+  .tag-picker.open { display: block; }
+  .tag-picker .exist { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .tag-picker .none { color: var(--text3); font-size: 13px; margin-bottom: 10px; }
+  .tag-picker .new-row { display: flex; gap: 6px; }
+  .tag-picker .new-row input {
+    flex: 1; border: 1px solid var(--border2); border-radius: 8px;
+    padding: 8px 10px; font-size: 14px; outline: none;
+    background: var(--input); color: var(--text1);
+  }
+  .tag-picker .new-row input:focus { border-color: var(--primary); }
+  .tag-picker .new-row button {
+    border: none; border-radius: 8px; background: var(--soft);
+    padding: 8px 12px; font-size: 13px; cursor: pointer; color: var(--text2);
+  }
+  .tag-picker .footer {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 10px;
+  }
+  .tag-picker .tip { font-size: 12px; color: var(--text3); }
+  .tag-picker .ok-btn {
+    border: none; border-radius: 8px; background: var(--primary); color: var(--primary-fg);
+    padding: 7px 20px; font-size: 13px; cursor: pointer;
+  }
+  .tag-picker .ok-btn:hover { background: var(--primary-hover); }
+
+  .chip {
+    font-size: 12px; padding: 3px 10px; border-radius: 999px;
+    cursor: pointer; user-select: none; border: 1px solid transparent;
+  }
+  .chip.selected { outline: 2px solid var(--primary); outline-offset: 1px; }
+
+  /* ---------- 筛选 + 搜索（第五步） ---------- */
+  .filter-bar { display: flex; align-items: flex-start; gap: 12px; margin-top: 0; flex-wrap: wrap; }
+  .filter-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+  .search-box {
+    width: 210px; flex-shrink: 0; border: 1px solid var(--border2); border-radius: 8px;
+    background: var(--input); padding: 7px 12px; font-size: 13.5px; outline: none;
+    transition: border-color .15s; color: var(--text1);
+  }
+  .search-box:focus { border-color: var(--primary); }
+  .search-box::placeholder { color: var(--text3); }
+  mark { background: var(--mark-bg); color: var(--mark-fg); border-radius: 3px; padding: 0 1px; }
+  .filters button {
+    border: none; border-radius: 8px; background: var(--soft);
+    color: var(--text2); font-size: 13px; padding: 6px 14px; cursor: pointer;
+    display: inline-flex; align-items: center;
+  }
+  .filters button.active { background: var(--primary); color: var(--primary-fg); }
+  .filters .fstar { color: var(--star); margin-right: 3px; }   /* 「优先」按钮黄星,与事项星标同色 */
+  .filters .fico { font-size: 13px; line-height: 1; margin-right: 3px; }   /* emoji 图标基线对齐 */
+
+  /* ---------- 列表 ---------- */
+  ul { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  li {
+    background: var(--card); border-radius: 10px; padding: 12px 14px;
+    display: flex; align-items: flex-start; gap: 10px;
+    box-shadow: var(--shadow);
+    position: relative;   /* 拖拽插入指示线（::before/::after）的定位基准 */
+  }
+  li.dragging { opacity: .45; outline: 2px dashed var(--primary); outline-offset: 2px; }
+  .drop-above::before, .drop-below::after {
+    content: ''; position: absolute; left: 4px; right: 4px; height: 0;
+    border-top: 2px solid var(--primary); border-radius: 2px; z-index: 1;
+  }
+  .drop-above::before { top: -5px; }
+  .drop-below::after { bottom: -5px; }
+  li.done .text { text-decoration: line-through; color: var(--text3); }
+  .main { display: flex; align-items: flex-start; gap: 8px; flex: 1; min-width: 0; }
+  .star {
+    font-size: 18px; cursor: pointer; flex-shrink: 0;
+    line-height: 1.2; padding: 0 2px; color: var(--star-off);
+  }
+  .star.on { color: var(--star); }
+  .star:not(.on):hover { color: var(--star-hover); }
+  .content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .title-line { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .text {
+    flex: 1; min-width: 0; word-break: break-all;
+    font-size: 15px; color: var(--text1); cursor: text;
+  }
+  /* 标签 + 日期整体靠右 */
+  .meta { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: auto; }
+  .badges { display: inline-flex; gap: 4px; }
+  .badges .chip { cursor: default; }
+  .due-date { font-size: 12px; color: var(--text2); }
+  .due-date.overdue { color: var(--danger); font-weight: 600; }
+
+  .desc {
+    font-size: 13px; color: var(--text2); cursor: pointer;
+    background: var(--soft2); border-radius: 6px; padding: 6px 10px;
+    word-break: break-all; border: 1px dashed transparent;
+  }
+  .desc:hover { border-color: var(--border3); }
+  .desc.placeholder { color: var(--text3); font-style: italic; }
+  .desc-edit {
+    font-size: 13px; border: 1px solid var(--primary); border-radius: 6px;
+    padding: 6px 10px; outline: none; resize: vertical;
+    font-family: inherit; width: 100%; min-height: 60px;
+    background: var(--input); color: var(--text1);
+  }
+
+  input[type="checkbox"] {
+    width: 18px; height: 18px; accent-color: var(--primary);
+    cursor: pointer; flex-shrink: 0; margin-top: 2px;
+  }
+  /* 操作区:✎ 编辑 / ✕ 删除 一行;拖拽与子任务按钮在简述两侧 */
+  .actions { display: flex; gap: 2px; flex-shrink: 0; }
+  .act {
+    border: none; background: none; font-size: 14px;
+    cursor: pointer; padding: 5px 9px; border-radius: 6px; line-height: 1.2;
+  }
+  .act.edit { color: var(--primary); }
+  .act.edit:hover { background: var(--active); }
+  .act.del { color: var(--danger); }
+  .act.del:hover { background: var(--danger-soft); }
+  .act.drag {
+    border: none; background: none; font-size: 12px; border-radius: 6px;
+    color: var(--text3); cursor: grab; padding: 2px 8px;
+    opacity: 0; transition: opacity .15s;   /* 平时隐藏,悬停事项时显现 */
+  }
+  li:hover .act.drag { opacity: 1; }
+  .act.drag:hover { background: var(--hover); color: var(--text2); }
+
+  /* 第 9 步优化(v2.6.3):简述恢复全宽、与标题左对齐;两个按钮绝对定位在简述行两侧外沿——
+     「🔽 子任务」左侧与五角星左对齐,「⠿ 拖拽」右侧与 ✕ 删除对齐,垂直贴简述底边。
+     展开子任务后按钮保持原位,列表出现在简述行下方 */
+  .mark-row { display: flex; align-items: flex-start; gap: 8px; flex-shrink: 0; }
+  .desc-line { position: relative; }
+  .desc-line .act.drag, .desc-line .sub-toggle { font-size: 12px; padding: 2px 6px; line-height: 1.4; }
+  .desc-line .sub-toggle { position: absolute; left: -53px; bottom: 0; }
+  .desc-line .act.drag { position: absolute; right: -73px; bottom: 0; }
+  /* 简述块左侧让位给子任务按钮(右缘保持不动);编辑态 textarea 同步缩进 */
+  .desc-line .desc, .desc-line .desc-edit { margin-left: 22px; }
+  .sub-toggle {
+    border: none; background: none; font-size: 12px; border-radius: 6px;
+    color: var(--text3); cursor: pointer; padding: 2px 6px;
+    opacity: 0; transition: opacity .15s;
+  }
+  li:hover .sub-toggle { opacity: 1; }
+  .sub-toggle:hover { background: var(--hover); color: var(--text2); }
+  .sub-toggle.on { opacity: 1; color: var(--primary); }   /* 有子任务:常显高亮 */
+
+  /* 第 9 步:子任务区——事项卡片内、简述下方,缩进一层;「文字 + 勾选 + 删除」 */
+  .sub-area { display: flex; flex-direction: column; gap: 4px; padding: 6px 0 2px 18px; }
+  .sub-row { display: flex; align-items: center; gap: 8px; }
+  .sub-row input[type="checkbox"] { width: 15px; height: 15px; margin-top: 0; }
+  .sub-row .sub-text { flex: 1; min-width: 0; font-size: 13px; color: var(--text2); word-break: break-all; }
+  .sub-row .sub-text.done { text-decoration: line-through; color: var(--text3); }
+  .sub-row .sub-input {
+    flex: 1; min-width: 0; border: 1px solid var(--primary); border-radius: 6px;
+    padding: 4px 8px; font-size: 13px; outline: none; font-family: inherit;
+    background: var(--input); color: var(--text1);
+  }
+  .sub-row .sub-x {
+    border: none; background: none; color: var(--text3); cursor: pointer;
+    font-size: 14px; padding: 2px 8px; border-radius: 6px; flex-shrink: 0; line-height: 1;
+  }
+  .sub-row .sub-x:hover { color: var(--danger); background: var(--danger-soft); }
+  .edit-input {
+    flex: 1; min-width: 0; border: 1px solid var(--primary);
+    border-radius: 6px; padding: 6px 8px; font-size: 15px; outline: none;
+    background: var(--input); color: var(--text1);
+  }
+  .empty { text-align: center; color: var(--text3); padding: 40px 0; font-size: 14px; }
+  /* 空状态引导(v2.6.0 A1):大图标 + 引导语,区别于搜索无结果 */
+  .empty-guide { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 44px 0 36px; }
+  .empty-guide .big { font-size: 42px; line-height: 1; }
+  .empty-guide .t { font-size: 15px; color: var(--text2); font-weight: 600; }
+  .empty-guide .g { font-size: 13px; color: var(--text3); }
+  .hint { font-size: 12px; color: var(--text3); text-align: left; margin: 6px 0 0; }
+
+  /* 卡片悬停反馈(v2.6.0 A2)+ 弹窗淡入 / 主题切换过渡 / 滚动条主题化(v2.6.0 B4/B6) */
+  li { transition: background-color .18s; }
+  li:hover { background: var(--card-hover); }
+  .modal-mask.open .modal { animation: modalIn .18s ease; }
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(.96) translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+  body, .top-bar, .side-left, .side-right, li, .modal, .zoom-pop, .theme-pop, .tag-picker {
+    transition: background-color .25s, border-color .25s, color .25s, box-shadow .25s;
+  }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 5px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  /* 弹窗内的添加区不再需要卡片底 */
+  #addMask .add-area { box-shadow: none; padding: 0; margin: 0; background: transparent; }
+
+  /* ---------- 导出选择弹窗（热身卡） ---------- */
+  .pick-tools { display: flex; gap: 8px; margin-bottom: 10px; }
+  .pick-tools button {
+    border: 1px solid var(--border2); background: var(--panel); border-radius: 8px;
+    font-size: 12.5px; color: var(--text2); padding: 5px 12px; cursor: pointer;
+  }
+  .pick-tools button:hover { border-color: var(--primary); color: var(--primary); }
+  .pick-list {
+    border: 1px solid var(--border); border-radius: 8px;
+    max-height: 260px; overflow-y: auto; padding: 6px;
+  }
+  .pick-list .pick-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 8px; border-radius: 6px; cursor: pointer; font-size: 14px;
+  }
+  .pick-list .pick-item:hover { background: var(--hover); }
+  .pick-list .pick-item .t { flex: 1; min-width: 0; word-break: break-all; color: var(--text1); }
+  .pick-list .pick-item .st { font-size: 12px; color: var(--text3); flex-shrink: 0; }
+
+  /* ---------- 编辑弹窗 ---------- */
+  .modal-mask {
+    display: none; position: fixed; inset: 0;
+    background: var(--mask); z-index: 50;
+    align-items: center; justify-content: center;
+  }
+  .modal-mask.open { display: flex; }
+  .modal {
+    background: var(--panel); border-radius: 14px; padding: 20px;
+    width: 400px; max-width: calc(100vw - 32px);
+    box-shadow: var(--shadow-modal);
+  }
+  .modal h3 { font-size: 17px; color: var(--text1); margin-bottom: 16px; }
+  .m-field { margin-bottom: 14px; }
+  .m-field > label {
+    display: block; font-size: 13px; color: var(--text2); margin-bottom: 6px;
+  }
+  .m-tags { display: flex; flex-wrap: wrap; gap: 8px; min-height: 28px; }
+  .m-tags .none { color: var(--text3); font-size: 13px; }
+  .m-field input[type="date"], .m-field select {
+    width: 100%; border: 1px solid var(--border2); border-radius: 8px;
+    padding: 8px 10px; font-size: 14px; outline: none; background: var(--input);
+    color: var(--text1);
+  }
+  .m-field input:focus, .m-field select:focus { border-color: var(--primary); }
+  .m-btns { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+  .m-btns button {
+    border: none; border-radius: 8px; padding: 8px 22px;
+    font-size: 14px; cursor: pointer;
+  }
+  .m-btns .cancel { background: var(--soft); color: var(--text2); }
+  .m-btns .cancel:hover { background: var(--soft-hover); }
+  .m-btns .save { background: var(--primary); color: var(--primary-fg); }
+  .m-btns .save:hover { background: var(--primary-hover); }
+
+  /* ---------- 批次二：标签统计 / 标签管理弹窗 ---------- */
+  #statsList, #manageList { max-height: 340px; overflow-y: auto; margin: -4px 0 4px; }
+  .mg-empty { text-align: center; color: var(--text3); font-size: 13.5px; padding: 26px 0; }
+
+  .stat-row { padding: 8px 2px; border-bottom: 1px solid var(--border); }
+  .stat-row:last-child, .mg-row:last-child { border-bottom: none; }
+  .stat-row .l1 { display: flex; align-items: center; gap: 8px; }
+  .stat-row .dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .stat-row .name, .mg-row .name {
+    font-size: 14px; color: var(--text1); flex: 1; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .stat-row .cnt { font-size: 13px; color: var(--text1); font-weight: 600; flex-shrink: 0; }
+  .stat-row .sub { font-size: 12px; color: var(--text3); padding: 3px 0 0 18px; }
+
+  .mg-row { padding: 10px 2px; border-bottom: 1px solid var(--border); }
+  .mg-row .l1 { display: flex; align-items: center; gap: 8px; }
+  .mg-row .dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .mg-row .use { font-size: 12px; color: var(--text3); flex-shrink: 0; }
+  .mg-row .btns { display: flex; gap: 6px; padding: 7px 0 0 18px; }
+  .mg-row .btns button, .mg-edit button {
+    border: 1px solid var(--border2); background: var(--panel); border-radius: 6px;
+    font-size: 12px; color: var(--text2); padding: 4px 10px; cursor: pointer; font-family: inherit;
+  }
+  .mg-row .btns button:hover, .mg-edit button:hover { border-color: var(--primary); color: var(--primary); }
+  .mg-row .btns button.del:hover { border-color: var(--danger); color: var(--danger); }
+  .mg-edit { display: flex; gap: 6px; padding: 7px 0 0 18px; }
+  .mg-edit input {
+    flex: 1; min-width: 0; border: 1px solid var(--primary); border-radius: 6px;
+    padding: 5px 8px; font-size: 13px; outline: none; font-family: inherit;
+    background: var(--input); color: var(--text1);
+  }
+  .mg-edit .ok { background: var(--primary); border-color: var(--primary); color: var(--primary-fg); }
+  .mg-edit .ok:hover { background: var(--primary-hover); color: var(--primary-fg); }
+  .mg-palette { display: flex; align-items: center; gap: 8px; padding: 9px 0 0 18px; flex-wrap: wrap; }
+  .mg-palette .sw {
+    width: 22px; height: 22px; border-radius: 6px; cursor: pointer;
+    border: 1px solid var(--border2); flex-shrink: 0;
+  }
+  .mg-palette .sw.on { outline: 2px solid var(--text1); outline-offset: 2px; }
+  .mg-palette .fold {
+    border: none; background: none; font-size: 12px; color: var(--text3);
+    cursor: pointer; padding: 0 0 0 4px; font-family: inherit;
+  }
+  .mg-palette .fold:hover { color: var(--primary); }
+</style>
+</head>
+<body>
+  <!-- ====== 第 6 步：四区布局（顶部信息 / 左侧标签 / 中部显示 / 右侧按钮） ====== -->
+  <div class="app-shell" id="app">
+    <!-- 顶部信息区：标题 + 统计，冻结不滚动 -->
+    <header class="top-bar">
+      <h1>待办清单</h1>
+      <div class="stats" id="stats"></div>
+    </header>
+
+    <div class="main-row">
+      <!-- 左侧标签区：固定，不随列表滚动 -->
+      <aside class="side-left">
+        <div class="side-title">标签</div>
+        <div class="tag-zone" id="tagZone"></div>
+        <div class="side-foot">
+          <button class="side-fn" id="tagStatsBtn" title="查看各标签的事项数量">📊 标签统计</button>
+          <button class="side-fn" id="tagManageBtn" title="集中管理标签：改名、换色、删除">🏷️ 标签管理</button>
+        </div>
+      </aside>
+
+      <!-- 中部待办事项显示区（主区域，只有这里滚动） -->
+      <main class="center">
+        <div class="filter-bar">
+          <div class="filter-col">
+            <div class="filters" id="statusFilters">
+              <button class="active" data-filter="all">全部</button>
+              <button data-filter="active">未完成</button>
+              <button data-filter="done">已完成</button>
+              <button data-filter="urgent"><span class="fstar">★</span>优先</button>
+              <button data-filter="due"><span class="fico">📅</span>截止日</button>
+            </div>
+          </div>
+          <input id="searchBox" class="search-box" type="search" maxlength="50"
+            placeholder="🔍 搜索标题 / 简述">
+        </div>
+        <div class="hint">提示：双击标题或简述编辑；点 ✎ 改标签/日期；点五角星切换优先；悬停事项，简述左下出「🔽 子任务」、右下出「⠿ 拖拽」</div>
+
+        <ul id="list"></ul>
+      </main>
+
+      <!-- 右侧按钮功能区：固定，不随列表滚动；新增为主按钮 -->
+      <aside class="side-right">
+        <button class="rbtn primary" id="addBtn2" title="新增待办事项（弹出表单）">✨<span>新增</span></button>
+        <button class="rbtn" id="exportBtn" title="选择要导出的待办，下载为 JSON 备份">📤<span>导出</span></button>
+        <button class="rbtn" id="importBtn" title="从备份文件导入（支持覆盖 / 追加）">📥<span>导入</span></button>
+        <button class="rbtn" id="zoomBtn" title="界面缩放">🔍<span>缩放</span></button>
+        <button class="rbtn" id="themeBtn" title="外观：浅色 / 深色 / 随系统">🎨<span>外观</span></button>
+        <button class="rbtn foot" id="infoBtn" title="开发信息">ℹ️<span>信息</span></button>
+        <button class="rbtn" id="helpBtn" title="操作说明">❓<span>帮助</span></button>
+      </aside>
+    </div>
+  </div>
+
+  <!-- 新增待办弹窗（由右侧「新增」按钮唤醒） -->
+  <div class="modal-mask" id="addMask">
+    <div class="modal">
+      <h3>新增待办</h3>
+      <div class="tag-picker-wrap">
+        <div class="add-area">
+          <div class="row1">
+            <input id="newTodo" type="text" placeholder="输入待办事项，回车或点添加…" maxlength="100">
+          </div>
+          <textarea id="newDesc" rows="2" maxlength="500"
+            placeholder="补充简述（可选，最多 500 字）…"></textarea>
+          <div class="row2">
+            <div class="field tagbtn" id="tagBtn">
+              <span>🏷️ 标签</span>
+              <span id="tagBtnChips"></span>
+            </div>
+            <div class="field">
+              <label>📅 截止</label>
+              <input id="newDue" type="date">
+            </div>
+            <div class="field">
+              <label>优先级</label>
+              <select id="newUrgent">
+                <option value="normal">一般</option>
+                <option value="urgent">优先</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="tag-picker" id="tagPicker">
+          <div class="exist" id="existTags"></div>
+          <div class="new-row">
+            <input id="newTagInput" type="text" placeholder="新标签名（最多 6 字）…" maxlength="6">
+            <button id="newTagAdd">新建并选中</button>
+          </div>
+          <div class="footer">
+            <span class="tip">点击标签选中/取消，最多选 3 个</span>
+            <button class="ok-btn" id="tagOk">确定</button>
+          </div>
+        </div>
+      </div>
+      <div class="m-btns">
+        <button class="cancel" id="addCancel">取消</button>
+        <button class="save" id="addBtn">添加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 界面缩放弹出面板（原顶部缩放控件迁移至此） -->
+  <div class="zoom-pop" id="zoomPop">
+    <button id="zoomOut" title="缩小">A−</button>
+    <span class="pct" id="zoomPct">100%</span>
+    <button id="zoomIn" title="放大">A+</button>
+    <button id="zoomReset" title="重置">重置</button>
+  </div>
+
+  <!-- 外观主题弹出面板（第 8 步）：五个模式,当前选中高亮 -->
+  <div class="theme-pop" id="themePop">
+    <button data-mode="light">☀️ 浅色系</button>
+    <button data-mode="graphite">🌑 石墨黑</button>
+    <button data-mode="midnight">🌌 午夜蓝</button>
+    <button data-mode="warm">🔥 暖夜棕</button>
+    <button data-mode="auto">🖥 随系统</button>
+  </div>
+
+  <!-- 开发信息弹窗 -->
+  <div class="modal-mask" id="infoMask">
+    <div class="modal">
+      <h3>开发信息</h3>
+      <div class="info-row"><span>开发者</span><b>学习者本人（需求与验收）× ZCode（实现）</b></div>
+      <div class="info-row"><span>版本号</span><b>2.6.4 · 界面打磨版</b></div>
+      <div class="info-row"><span>更新日期</span><b>2026-09-28</b></div>
+      <div class="info-sec">主要功能</div>
+      <ul class="info-feats">
+        <li>待办增删改查，双击编辑标题 / 简述</li>
+        <li>子任务（细化补充待办，独立勾选，不与父任务联动）</li>
+        <li>标签多选（每条最多 3 个）、按标签筛选</li>
+        <li>标签统计弹窗、标签管理（修改 / 颜色 / 删除）</li>
+        <li>状态筛选（含截止日）+ 关键词搜索（命中高亮）</li>
+        <li>拖拽排序（手柄拖动自定义顺序）</li>
+        <li>外观主题（浅色 / 石墨黑 / 午夜蓝 / 暖夜棕 / 随系统，刷新保持）</li>
+        <li>截止日期逾期提醒、优先级星标</li>
+        <li>数据导出 / 导入（认证码校验，覆盖 / 追加）</li>
+        <li>界面缩放、本地持久化（刷新不丢数据）</li>
+      </ul>
+      <div class="m-btns">
+        <button class="save" id="infoOk">知道了</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 帮助弹窗（右栏「❓ 帮助」独立入口） -->
+  <div class="modal-mask" id="helpMask">
+    <div class="modal">
+      <h3>操作说明</h3>
+      <ul class="info-feats help-list">
+        <li><b>新增：</b>右栏「✨ 新增」打开表单；标签可选已有或新建（每条最多 3 个，新标签限 6 字）；回车或「添加」保存，新事项加入顶部</li>
+        <li><b>编辑：</b>双击标题 / 简述就地修改（回车保存、Esc 取消）；点 ✎ 改标签 / 日期 / 优先级；点五角星切换优先</li>
+        <li><b>完成：</b>点事项左侧方框勾选 / 取消</li>
+        <li><b>删除：</b>点 ✕ 并确认，删除后不可恢复</li>
+        <li><b>筛选与搜索：</b>顶部状态按钮（全部 / 未完成 / 已完成 / 优先 / 截止日）与左栏标签可同时生效；搜索在其结果上二次过滤，Esc 或 × 清空</li>
+        <li><b>拖拽排序：</b>悬停事项，简述右下出现「⠿ 拖拽」手柄（与 ✕ 对齐），按住上下移动，指示线指到哪、松手放到哪；筛选中可拖（改真实顺序），搜索或子任务展开期间暂不支持；收起子任务后手柄回来</li>
+        <li><b>子任务：</b>悬停事项，简述左下出现「🔽 子任务」（与五角星对齐；有子任务的事项常亮提示，展开后变 🔼），点击在事项下方展开子任务列表；列表底部始终有一条空行等待输入——回车保存后自动续行、失焦自动保存、Esc 清空；双击子任务文字可编辑；勾选表示该子任务完成（划线），× 删除；再点按钮或点事项空白处收起。子任务不改变父任务的完成状态</li>
+        <li><b>标签工具：</b>左栏「📊 标签统计」查看各标签数量；「🏷️ 标签管理」改名 / 换色 / 删除，删除在用标签需双重确认（事项保留）</li>
+        <li><b>导入导出：</b>右栏「📤 导出」可勾选部分待办下载 JSON；「📥 导入」支持覆盖 / 追加并校验认证码——数据存浏览器本地，换设备靠它迁移</li>
+        <li><b>缩放：</b>右栏「🔍 缩放」调整界面大小，面板与按钮持平对齐</li>
+        <li><b>外观：</b>右栏「🎨 外观」选择浅色系 / 石墨黑 / 午夜蓝 / 暖夜棕 / 随系统（随系统在系统深色时用石墨黑）；选择自动记住，刷新保持</li>
+      </ul>
+      <div class="m-btns">
+        <button class="save" id="helpOk">知道了</button>
+      </div>
+    </div>
+  </div>
+    </div>
+  </div>
+
+  <!-- 标签统计弹窗（批次二） -->
+  <div class="modal-mask" id="statsMask">
+    <div class="modal">
+      <h3>标签统计</h3>
+      <div id="statsList"></div>
+      <div class="m-btns">
+        <button class="save" id="statsOk">知道了</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 标签管理弹窗（批次二）：修改 / 颜色 / 删除 -->
+  <div class="modal-mask" id="manageMask">
+    <div class="modal">
+      <h3>标签管理</h3>
+      <div id="manageList"></div>
+      <div class="m-btns">
+        <button class="cancel" id="manageClose">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+
+  <!-- 编辑弹窗 -->
+  <div class="modal-mask" id="editMask">
+    <div class="modal">
+      <h3>编辑待办</h3>
+      <div class="m-field">
+        <label>标签（最多 3 个，点击选中/取消）</label>
+        <div class="m-tags" id="editTagsBox"></div>
+      </div>
+      <div class="m-field">
+        <label>截止日期</label>
+        <input type="date" id="editDue">
+      </div>
+      <div class="m-field">
+        <label>优先级</label>
+        <select id="editUrgent">
+          <option value="normal">一般</option>
+          <option value="urgent">优先</option>
+        </select>
+      </div>
+      <div class="m-btns">
+        <button class="cancel" id="editCancel">取消</button>
+        <button class="save" id="editSave">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 导出选择弹窗（热身卡） -->
+  <div class="modal-mask" id="exportMask">
+    <div class="modal">
+      <h3>选择要导出的待办</h3>
+      <div class="pick-tools">
+        <button id="pickAll">全选</button>
+        <button id="pickNone">全部取消</button>
+      </div>
+      <div class="pick-list" id="pickList"></div>
+      <div class="m-btns">
+        <button class="cancel" id="exportCancel">取消</button>
+        <button class="save" id="exportConfirm">导出所选</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const STORAGE_KEY = 'todo-items';
+  const TAG_BANK_KEY = 'todo-tag-bank';
+  const ZOOM_KEY = 'todo-ui-zoom';
+  const MAX_TAGS = 3;
+
+  // 批次二:色板扩到 8 色。标签库 tagBank 由字符串数组升级为 [{ name, color }] 对象数组,
+  // color 存色板序号——颜色第一次成为持久化数据(旧数据自动迁移,见 normalizeTagBank)
+  // 第 8 步:每色补 dfg(深色模式亮字色)——深色下芯片用「dfg 半透明底 + dfg 亮字」
+  const PALETTE = [
+    { bg: '#e0eaff', fg: '#2b5cd9', dfg: '#8ab4f8' },
+    { bg: '#e5f6ea', fg: '#1f8a4c', dfg: '#7fce93' },
+    { bg: '#fdeee0', fg: '#c26a0f', dfg: '#f0b26b' },
+    { bg: '#f5e8f7', fg: '#93338f', dfg: '#d093cc' },
+    { bg: '#e6f3f7', fg: '#157a95', dfg: '#6cc5dd' },
+    { bg: '#f9e9e9', fg: '#c24545', dfg: '#e57373' },
+    { bg: '#f0ece4', fg: '#8a6a2f', dfg: '#d4b483' },
+    { bg: '#e9edf2', fg: '#52627a', dfg: '#a3b3cc' },
+  ];
+
+  // ---------- 数据层 ----------
+  function loadItems() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+    catch { return []; }
+  }
+  function loadTagBank() {
+    try { return normalizeTagBank(JSON.parse(localStorage.getItem(TAG_BANK_KEY))); }
+    catch { return []; }
+  }
+  // 标签库规范化:兼容三种来源——旧版字符串数组("工作")、新版对象数组({name,color})、
+  // 导入文件里的残缺数据。颜色缺失时按入库顺序从色板轮流分配,与旧版取色规律衔接
+  function normalizeTagBank(raw) {
+    const out = [];
+    const push = (name, color) => {
+      if (typeof name !== 'string' || !name.trim()) return;
+      const n = name.trim();
+      if (out.some(x => x.name === n)) return;
+      out.push({
+        name: n,
+        color: Number.isInteger(color) && color >= 0 && color < PALETTE.length
+          ? color : out.length % PALETTE.length
+      });
+    };
+    if (Array.isArray(raw)) raw.forEach(t => {
+      if (typeof t === 'string') push(t);
+      else if (t && typeof t === 'object') push(t.name, t.color);
+    });
+    return out;
+  }
+  // 事项身上出现而库里没有的标签,自动补进库(颜色按顺序分配)
+  function addTagToBank(name) {
+    if (!tagBank.some(x => x.name === name)) {
+      tagBank.push({ name, color: tagBank.length % PALETTE.length });
+    }
+  }
+
+  let items = loadItems();      // [{ id, text, desc, done, tags, due, urgent }]
+  let tagBank = loadTagBank();
+  let statusFilter = 'all';
+  let tagFilter = null;
+  let keyword = '';            // 搜索关键词（保存原始输入，比较和高亮时再转小写）
+  let pendingTags = [];         // 添加栏已选标签
+  let editId = null;            // 弹窗正在编辑的事项 id
+  let editTags = [];            // 弹窗中临时选中的标签
+
+  items.forEach(it => {
+    if (!Array.isArray(it.tags)) it.tags = it.tag ? [it.tag] : [];
+    if (typeof it.urgent !== 'boolean') it.urgent = false;
+    if (typeof it.desc !== 'string') it.desc = '';
+    if (!Array.isArray(it.subtasks)) it.subtasks = [];   // 第 9 步:防御性默认,旧数据不崩
+    it.tags.forEach(addTagToBank);
+  });
+  function persist() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    localStorage.setItem(TAG_BANK_KEY, JSON.stringify(tagBank));
+  }
+
+  // ---------- 界面缩放 ----------
+  const appEl = document.getElementById('app');
+  let zoom = parseFloat(localStorage.getItem(ZOOM_KEY));
+  if (!(zoom >= 0.7 && zoom <= 1.5)) zoom = 1;
+  function applyZoom() {
+    appEl.style.zoom = zoom;
+    document.getElementById('zoomPct').textContent = Math.round(zoom * 100) + '%';
+    localStorage.setItem(ZOOM_KEY, String(zoom));
+  }
+  document.getElementById('zoomIn').addEventListener('click', () => {
+    zoom = Math.min(1.5, Math.round((zoom + 0.1) * 10) / 10); applyZoom();
+  });
+  document.getElementById('zoomOut').addEventListener('click', () => {
+    zoom = Math.max(0.7, Math.round((zoom - 0.1) * 10) / 10); applyZoom();
+  });
+  document.getElementById('zoomReset').addEventListener('click', () => { zoom = 1; applyZoom(); });
+  applyZoom();
+
+  // ---------- 第 8 步:外观主题(浅色 / 三套深色 / 随系统) ----------
+  const THEME_KEY = 'todo-ui-theme';
+  const THEME_MODES = ['light', 'graphite', 'midnight', 'warm', 'auto'];
+  let themeMode = localStorage.getItem(THEME_KEY);
+  if (!THEME_MODES.includes(themeMode)) themeMode = 'light';   // 默认浅色
+  const sysDark = window.matchMedia('(prefers-color-scheme: dark)');
+  const themePopEl = document.getElementById('themePop');
+
+  function renderThemePanel() {
+    themePopEl.querySelectorAll('button').forEach(b =>
+      b.classList.toggle('on', b.dataset.mode === themeMode));
+  }
+  function applyTheme() {
+    // 随系统:系统深色固定用石墨黑,浅色用浅色系;其余模式即其本身
+    const t = themeMode === 'auto' ? (sysDark.matches ? 'graphite' : 'light') : themeMode;
+    document.documentElement.dataset.theme = t;
+    localStorage.setItem(THEME_KEY, themeMode);
+    renderThemePanel();
+    render();   // 标签芯片 / 色点颜色随主题变化,全部重画
+  }
+  sysDark.addEventListener('change', () => {
+    if (themeMode === 'auto') applyTheme();   // 随系统模式下,系统切明暗实时跟随
+  });
+
+  document.getElementById('themeBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    // 面板与外观按钮垂直持平(与缩放面板同一套定位逻辑)
+    const r = e.currentTarget.getBoundingClientRect();
+    themePopEl.style.top = Math.max(8, Math.round(r.top + r.height / 2 - 19)) + 'px';
+    themePopEl.style.right = Math.max(8, Math.round(window.innerWidth - r.left + 10)) + 'px';
+    themePopEl.classList.toggle('open');
+  });
+  themePopEl.querySelectorAll('button').forEach(b =>
+    b.addEventListener('click', () => {
+      themeMode = b.dataset.mode;
+      applyTheme();
+      themePopEl.classList.remove('open');   // 选定即收起(v2.6.1)
+    })
+  );
+  document.addEventListener('click', e => {
+    if (!themePopEl.classList.contains('open')) return;
+    if (!e.target.closest('.theme-pop') && e.target.id !== 'themeBtn') themePopEl.classList.remove('open');
+  });
+
+  // ---------- 标签工具 ----------
+  function tagColor(tag) {
+    const ent = tagBank.find(x => x.name === tag);
+    return chipColor(ent ? ent.color : 0);
+  }
+  // 第 8 步:按当前主题取芯片配色——浅色「浅底深字」,深色「亮色半透明底 + 亮字」
+  function chipColor(idx) {
+    const col = PALETTE[idx] || PALETTE[0];
+    if (document.documentElement.dataset.theme === 'light' || !document.documentElement.dataset.theme) {
+      return { bg: col.bg, fg: col.fg };
+    }
+    return { bg: hexA(col.dfg, .16), fg: col.dfg };
+  }
+  function hexA(hex, a) {
+    const n = parseInt(hex.slice(1), 16);
+    return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+  }
+  function makeChip(tag, selected, onClick) {
+    const c = document.createElement('span');
+    c.className = 'chip' + (selected ? ' selected' : '');
+    const col = tagColor(tag);
+    c.style.background = col.bg;
+    c.style.color = col.fg;
+    c.textContent = tag;
+    if (onClick) c.addEventListener('click', e => {
+      // 点击标签后面板会重建，此点击若继续冒泡到 document，其目标元素已脱离页面，
+      // 会被"点击外部关闭"逻辑误判而关掉面板，因此在这里阻断
+      e.stopPropagation();
+      onClick(e);
+    });
+    return c;
+  }
+  function toggleInSelection(sel, tag) {
+    const i = sel.indexOf(tag);
+    if (i >= 0) { sel.splice(i, 1); return true; }
+    if (sel.length >= MAX_TAGS) { alert(`最多选择 ${MAX_TAGS} 个标签`); return false; }
+    sel.push(tag);
+    return true;
+  }
+
+  // ---------- 日期工具 ----------
+  function dueInfo(due, done) {
+    if (!due) return null;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const d = new Date(due + 'T00:00:00');
+    const diff = Math.round((d - today) / 86400000);
+    if (done) return { text: due.slice(5), overdue: false };
+    if (diff < 0) return { text: `已逾期 ${-diff} 天`, overdue: true };
+    if (diff === 0) return { text: '今天到期', overdue: true };
+    if (diff === 1) return { text: '明天到期', overdue: false };
+    return { text: due.slice(5) + ' 到期', overdue: false };
+  }
+
+  // ---------- 渲染 ----------
+  const listEl = document.getElementById('list');
+  const statsEl = document.getElementById('stats');
+  const tagFiltersEl = document.getElementById('tagZone');
+  const pickerEl = document.getElementById('tagPicker');
+  const existEl = document.getElementById('existTags');
+  const tagBtnChipsEl = document.getElementById('tagBtnChips');
+  const editMaskEl = document.getElementById('editMask');
+  const editTagsBoxEl = document.getElementById('editTagsBox');
+
+  // ---------- 第 7 步:拖拽排序 ----------
+  let dragId = null;   // 正在拖拽的事项 id;null = 未拖
+  function clearDragMarks() {
+    document.querySelectorAll('.drop-above, .drop-below')
+      .forEach(el => el.classList.remove('drop-above', 'drop-below'));
+  }
+  // 在全量数组里把 dragId 移到 targetId 的上/下方。筛选视图下拖拽也走这里,
+  // 因此改变的是真实顺序——不可见的事项与两者的相对位置保持不变
+  function moveItem(dragIdVal, targetId, below) {
+    const from = items.findIndex(x => x.id === dragIdVal);
+    if (from === -1) return;
+    const [moved] = items.splice(from, 1);
+    const to = items.findIndex(x => x.id === targetId);
+    if (to === -1) { items.splice(from, 0, moved); return; }   // 目标丢了,原样放回
+    items.splice(below ? to + 1 : to, 0, moved);
+    persist();
+  }
+
+  // ---------- 第 9 步:子任务(细化补充,独立勾选,不与父任务联动) ----------
+  // 交互模型(v2.4.1 优化):「＋ 子任务」按钮只负责展开/收起列表(有子任务时高亮常显作提示);
+  // 列表展开期间底部常驻一条空行等待输入,保存后自动续行——添加子任务不需要再碰按钮
+  const expandedSubs = new Set();   // 已展开子任务区的事项 id
+  const subDrafts = new Map();      // itemId → 空行里未保存的草稿文字(render 重建不丢)
+  let subFocusTarget = null;        // 渲染后要聚焦空行的事项 id(一次性:展开 / 回车续行时设)
+  let subEditing = null;            // 正在双击编辑的子任务对象;null = 无
+  let subEditText = '';             // 编辑中的文字——即使被别的 render 打断也不丢
+
+  function renderSubArea(it) {
+    const area = document.createElement('div');
+    area.className = 'sub-area';
+    (it.subtasks || []).forEach((sub, idx) => {
+      const row = document.createElement('div');
+      row.className = 'sub-row';
+      const cbx = document.createElement('input');
+      cbx.type = 'checkbox';
+      cbx.checked = sub.done;
+      cbx.addEventListener('change', () => { sub.done = cbx.checked; persist(); render(); });
+      if (subEditing === sub) {
+        // 编辑态:双击进入(或被别的 render 打断后自动恢复),回车/失焦保存、Esc 放弃
+        const input = document.createElement('input');
+        input.className = 'sub-input';
+        input.maxLength = 100;
+        input.value = subEditText;
+        input.addEventListener('input', () => { subEditText = input.value; });
+        let finished = false;
+        const finish = save => {
+          if (finished) return;
+          finished = true;
+          if (save) {
+            const v = input.value.trim();
+            if (v) sub.text = v;   // 空值保留原文
+          }
+          subEditing = null; subEditText = '';
+          persist();
+          render();
+        };
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+          if (e.key === 'Escape') finish(false);
+        });
+        input.addEventListener('blur', () => finish(true));
+        row.append(cbx, input);
+        setTimeout(() => { input.focus(); input.select(); }, 0);
+      } else {
+        const txt = document.createElement('span');
+        txt.className = 'sub-text' + (sub.done ? ' done' : '');
+        txt.textContent = sub.text;
+        txt.title = '双击编辑';
+        txt.addEventListener('dblclick', () => {
+          subEditing = sub;       // 双击只设状态再统一 render,避免直接改 DOM 被并发的
+          subEditText = sub.text; // render(如空行失焦保存)吞掉,体感"双击无效"
+          render();
+        });
+        row.append(cbx, txt);
+      }
+      const x = document.createElement('button');
+      x.className = 'sub-x';
+      x.textContent = '×';
+      x.title = '删除该子任务';
+      x.addEventListener('click', () => {
+        if (subEditing === sub) { subEditing = null; subEditText = ''; }
+        it.subtasks.splice(idx, 1);
+        persist();
+        render();
+      });
+      row.appendChild(x);
+      area.appendChild(row);
+    });
+    // 底部常驻录入行:回车保存并自动补一条新空行(继续聚焦);失焦时有字也保存但不抢焦点;
+    // Esc 只清空当前输入。行始终保留,等待下一次输入
+    const row = document.createElement('div');
+    row.className = 'sub-row';
+    const cbx = document.createElement('input');
+    cbx.type = 'checkbox';
+    cbx.disabled = true;   // 空行不是条目,保存前不可勾
+    const input = document.createElement('input');
+    input.className = 'sub-input';
+    input.maxLength = 100;
+    input.placeholder = '填写子任务，回车保存…';
+    input.value = subDrafts.get(it.id) || '';
+    input.addEventListener('input', () => subDrafts.set(it.id, input.value));
+    const commit = refocus => {
+      const v = input.value.trim();
+      if (v) {
+        it.subtasks.push({ text: v, done: false });
+        persist();
+      }
+      subDrafts.delete(it.id);
+      if (refocus) subFocusTarget = it.id;   // 回车续行时聚焦新空行;失焦保存不抢焦点
+      render();
+    };
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); commit(true); }
+      if (e.key === 'Escape') { e.preventDefault(); input.value = ''; subDrafts.delete(it.id); }
+    });
+    // 失焦:有字就保存。延迟一拍让同一行的勾选 / × 先处理;若行已被重建则交给新行
+    input.addEventListener('blur', () => {
+      setTimeout(() => {
+        if (!document.body.contains(input)) return;
+        const v = input.value.trim();
+        if (v) commit(false);
+      }, 120);
+    });
+    row.append(cbx, input);
+    area.appendChild(row);
+    if (subFocusTarget === it.id) {
+      subFocusTarget = null;
+      setTimeout(() => input.focus(), 0);
+    }
+    return area;
+  }
+
+  function render() {
+    renderPicker();
+    renderTagBtn();
+    renderTagFilters();
+    renderList();
+    const doneCount = items.filter(it => it.done).length;
+    const urgentOpen = items.filter(it => it.urgent && !it.done).length;   // 优先级统计：未完成且优先
+    statsEl.textContent = items.length
+      ? `共 ${items.length} 项 · 已完成 ${doneCount} 项 · 未完成且优先 ${urgentOpen} 项` : '';
+  }
+
+  function renderPicker() {
+    existEl.innerHTML = '';
+    if (tagBank.length === 0) {
+      existEl.innerHTML = '<div class="none">还没有标签，在下面创建一个吧</div>';
+    } else {
+      tagBank.forEach(ent => existEl.appendChild(
+        makeChip(ent.name, pendingTags.includes(ent.name), () => {
+          toggleInSelection(pendingTags, ent.name);
+          renderPicker();
+          renderTagBtn();
+        })
+      ));
+    }
+  }
+
+  function renderTagBtn() {
+    tagBtnChipsEl.innerHTML = '';
+    if (pendingTags.length === 0) {
+      tagBtnChipsEl.innerHTML = '<span class="tagbtn-placeholder">未选（点击选择）</span>';
+    } else {
+      pendingTags.forEach(t => tagBtnChipsEl.appendChild(makeChip(t, true, null)));
+    }
+  }
+
+  // 第 6 步：左侧标签区——在用标签在前（色点用饱和色），未被使用的在后（色点保持浅色）
+  function renderTagFilters() {
+    tagFiltersEl.innerHTML = '';
+    const mkTag = (name, dotColor, active, onClick) => {
+      const b = document.createElement('button');
+      b.className = 'tag-item' + (active ? ' active' : '');
+      if (dotColor) {
+        const dot = document.createElement('span');
+        dot.className = 'dot';
+        dot.style.background = dotColor;
+        b.appendChild(dot);
+      }
+      const s = document.createElement('span');
+      s.className = 'name';
+      s.textContent = name;
+      b.appendChild(s);
+      b.addEventListener('click', onClick);
+      return b;
+    };
+    const usedSet = new Set(items.flatMap(it => it.tags));
+    const usedTags = tagBank.filter(x => usedSet.has(x.name));
+    const unusedTags = tagBank.filter(x => !usedSet.has(x.name));
+
+    tagFiltersEl.appendChild(mkTag('全部', null, tagFilter === null, () => { tagFilter = null; render(); }));
+    usedTags.forEach(x => tagFiltersEl.appendChild(
+      mkTag(x.name, tagColor(x.name).fg, tagFilter === x.name, () => { tagFilter = x.name; render(); })
+    ));
+    if (unusedTags.length > 0) {
+      const cap = document.createElement('div');
+      cap.className = 'tag-group';
+      cap.textContent = '未使用';
+      tagFiltersEl.appendChild(cap);
+      unusedTags.forEach(x => tagFiltersEl.appendChild(
+        mkTag(x.name, tagColor(x.name).bg, tagFilter === x.name, () => { tagFilter = x.name; render(); })
+      ));
+    }
+    if (tagBank.length === 0) {
+      const tip = document.createElement('div');
+      tip.className = 'tag-none';
+      tip.textContent = '还没有标签，新增待办时可创建';
+      tagFiltersEl.appendChild(tip);
+    }
+  }
+
+  // 第五步：把 text 中命中的关键词片段用 <mark> 包裹后放进 parent。
+  // 用 DOM 节点拼接而不是 innerHTML，避免关键词里的 HTML 字符被当作标签执行
+  function appendHighlighted(parent, text, kw) {
+    if (!kw) { parent.appendChild(document.createTextNode(text)); return; }
+    const lower = text.toLowerCase(), k = kw.toLowerCase();
+    let i = 0;
+    while (i <= lower.length) {
+      const j = lower.indexOf(k, i);
+      if (j === -1) {
+        parent.appendChild(document.createTextNode(text.slice(i)));
+        break;
+      }
+      parent.appendChild(document.createTextNode(text.slice(i, j)));
+      const mark = document.createElement('mark');
+      mark.textContent = text.slice(j, j + k.length);
+      parent.appendChild(mark);
+      i = j + k.length;
+    }
+  }
+
+  function renderList() {
+    // 搜索在当前状态/标签筛选的范围内做二次过滤（AND 叠加）
+    const kw = keyword.toLowerCase();
+    const shown = items.filter(it =>
+      (statusFilter === 'all' ? true
+       : statusFilter === 'done' ? it.done
+       : statusFilter === 'active' ? !it.done
+       : statusFilter === 'urgent' ? it.urgent
+       : statusFilter === 'due' ? !!it.due : true)
+      && (tagFilter === null || it.tags.includes(tagFilter))
+      && (kw === '' || it.text.toLowerCase().includes(kw)
+                    || (it.desc || '').toLowerCase().includes(kw))
+    );
+
+    listEl.innerHTML = '';
+    if (shown.length === 0) {
+      const empty = document.createElement('div');
+      if (kw) {
+        // 搜索无结果:与「暂无事项」区分的浅色提示
+        empty.className = 'empty';
+        empty.textContent = '当前搜索无对应事项';
+      } else {
+        // 空状态引导(v2.6.0):大图标 + 指引下一步动作
+        empty.className = 'empty-guide';
+        const big = document.createElement('div');
+        big.className = 'big';
+        big.textContent = '📝';
+        const t = document.createElement('div');
+        t.className = 't';
+        t.textContent = '还没有待办事项';
+        const g = document.createElement('div');
+        g.className = 'g';
+        g.textContent = '点右上「✨ 新增」写下第一条，也可以先选个外观主题';
+        empty.append(big, t, g);
+      }
+      listEl.appendChild(empty);
+      return;
+    }
+    shown.forEach(it => listEl.appendChild(renderItem(it)));
+  }
+
+  function renderItem(it) {
+    const li = document.createElement('li');
+    if (it.done) li.classList.add('done');
+
+    const star = document.createElement('span');
+    star.className = 'star' + (it.urgent ? ' on' : '');
+    star.textContent = '★';
+    star.title = it.urgent ? '优先（点击取消）' : '设为优先';
+    star.addEventListener('click', () => { it.urgent = !it.urgent; persist(); render(); });
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = it.done;
+    cb.addEventListener('change', () => toggle(it.id));
+
+    const content = document.createElement('div');
+    content.className = 'content';
+
+    const titleLine = document.createElement('div');
+    titleLine.className = 'title-line';
+
+    const span = document.createElement('span');
+    span.className = 'text';
+    span.title = '双击编辑标题';
+    appendHighlighted(span, it.text, keyword);
+    span.addEventListener('dblclick', () => startEdit(titleLine, it, span));
+
+    const meta = document.createElement('span');
+    meta.className = 'meta';
+    if (it.tags.length) {
+      const badges = document.createElement('span');
+      badges.className = 'badges';
+      it.tags.forEach(t => badges.appendChild(makeChip(t, false, null)));
+      meta.appendChild(badges);
+    }
+    const di = dueInfo(it.due, it.done);
+    if (di) {
+      const d = document.createElement('span');
+      d.className = 'due-date' + (di.overdue ? ' overdue' : '');
+      d.textContent = '📅 ' + di.text;
+      meta.appendChild(d);
+    }
+
+    titleLine.append(span, meta);
+
+    const desc = document.createElement('div');
+    desc.className = 'desc' + (it.desc ? '' : ' placeholder');
+    desc.title = '双击编辑简述';
+    if (it.desc) appendHighlighted(desc, it.desc, keyword);
+    else desc.textContent = '+ 双击补充简述';
+    desc.addEventListener('dblclick', () => startDescEdit(content, it, desc));
+
+    const markRow = document.createElement('div');
+    markRow.className = 'mark-row';
+    markRow.append(star, cb);
+
+    // 简述行(v2.6.3):简述全宽与标题对齐;按钮绝对定位在两侧外沿——
+    // 「🔽 子任务」左(与五角星对齐)、「⠿ 拖拽」右(与 ✕ 对齐),贴简述底边。
+    // 展开子任务后按钮保持原位;展开期间暂不支持拖拽(手柄不渲染 + 事件层拦截)
+    const descLine = document.createElement('div');
+    descLine.className = 'desc-line';
+    const subBtn = document.createElement('button');
+    subBtn.className = 'sub-toggle' + ((it.subtasks || []).length ? ' on' : '');
+    subBtn.textContent = (expandedSubs.has(it.id) ? '🔼' : '🔽') + ' 子任务';
+    subBtn.title = '展开 / 收起子任务';
+    subBtn.addEventListener('click', () => {
+      if (expandedSubs.has(it.id)) {
+        expandedSubs.delete(it.id);
+      } else {
+        expandedSubs.add(it.id);
+        subFocusTarget = it.id;   // 展开时聚焦底部空行
+      }
+      render();
+    });
+    descLine.append(subBtn, desc);
+    if (!keyword && !expandedSubs.has(it.id)) {
+      const handle = document.createElement('button');
+      handle.className = 'act drag';
+      handle.textContent = '⠿ 拖拽';
+      handle.title = '按住上下拖动,调整顺序';
+      handle.addEventListener('mousedown', () => li.setAttribute('draggable', 'true'));
+      handle.addEventListener('mouseup', () => li.removeAttribute('draggable'));
+      descLine.appendChild(handle);
+    }
+
+    content.append(titleLine, descLine);
+    // 第 9 步:展开态渲染子任务区(简述行下方)
+    if (expandedSubs.has(it.id)) content.appendChild(renderSubArea(it));
+
+    const main = document.createElement('div');
+    main.className = 'main';
+    main.append(markRow, content);
+
+    // 第 9 步:点击事项卡片的空白处收起子任务列表。
+    // 文字区(标题/简述)豁免——收起会重建 DOM,破坏双击编辑的第二次点击
+    li.addEventListener('click', e => {
+      if (!expandedSubs.has(it.id)) return;
+      if (e.target.closest('button, input, .sub-area, .text, .desc, .star, .chip, .due-date, .desc-line')) return;
+      expandedSubs.delete(it.id);
+      render();
+    });
+
+    const actions = document.createElement('span');
+    actions.className = 'actions';
+    const editBtn = document.createElement('button');
+    editBtn.className = 'act edit';
+    editBtn.textContent = '✎';
+    editBtn.title = '编辑：改标签、日期、优先级';
+    editBtn.addEventListener('click', () => openEdit(it));
+    const del = document.createElement('button');
+    del.className = 'act del';
+    del.textContent = '✕';
+    del.title = '删除该待办';
+    del.addEventListener('click', () => {
+      if (confirm(`确定删除「${it.text}」吗？删除后无法恢复。`)) remove(it.id);
+    });
+    actions.append(editBtn, del);
+
+    // 第 7 步:拖拽事件(手柄在事项底部工具行;搜索态、子任务展开期间均不渲染手柄)
+    if (!keyword) {
+      li.addEventListener('dragstart', e => {
+        if (keyword || expandedSubs.has(it.id)) { e.preventDefault(); return; }   // 双保险:展开期间不许拖
+        dragId = it.id;
+        li.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(it.id));   // Firefox 需要有数据才启动拖拽
+      });
+      li.addEventListener('dragend', () => {
+        dragId = null;
+        li.classList.remove('dragging');
+        li.removeAttribute('draggable');
+        clearDragMarks();
+      });
+      // 拖动经过某行:按鼠标在该行上半/下半,决定插入到它上面还是下面,画指示线
+      li.addEventListener('dragover', e => {
+        if (dragId === null || dragId === it.id) return;
+        e.preventDefault();   // 允许在此放置
+        const r = li.getBoundingClientRect();
+        const below = e.clientY > r.top + r.height / 2;
+        clearDragMarks();
+        li.classList.add(below ? 'drop-below' : 'drop-above');
+      });
+      li.addEventListener('drop', e => {
+        e.preventDefault();
+        if (dragId === null || dragId === it.id) return;
+        const r = li.getBoundingClientRect();
+        const below = e.clientY > r.top + r.height / 2;   // 松手位置现场重算,不依赖 dragover
+        moveItem(dragId, it.id, below);
+        dragId = null;
+        clearDragMarks();
+        render();
+      });
+    }
+
+    li.append(main, actions);
+    return li;
+  }
+
+  // ---------- 双击编辑标题 ----------
+  function startEdit(container, it, span) {
+    const input = document.createElement('input');
+    input.className = 'edit-input';
+    input.value = it.text;
+    input.maxLength = 100;
+    span.replaceWith(input);
+    input.focus();
+    input.select();
+
+    let finished = false;
+    function finish(saveIt) {
+      if (finished) return;
+      finished = true;
+      if (saveIt) {
+        const v = input.value.trim();
+        if (v) it.text = v;
+      }
+      persist();
+      render();
+    }
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') finish(true);
+      if (e.key === 'Escape') finish(false);
+    });
+    input.addEventListener('blur', () => finish(true));
+  }
+
+  // ---------- 双击编辑简述 ----------
+  function startDescEdit(content, it, descEl) {
+    const ta = document.createElement('textarea');
+    ta.className = 'desc-edit';
+    ta.value = it.desc;
+    ta.maxLength = 500;
+    ta.placeholder = '补充说明，如负责人、注意事项、进度…（最多 500 字）';
+    descEl.replaceWith(ta);
+    ta.focus();
+
+    let finished = false;
+    function finish(saveIt) {
+      if (finished) return;
+      finished = true;
+      if (saveIt) it.desc = ta.value.trim();
+      persist();
+      render();
+    }
+    ta.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); finish(true); }
+      if (e.key === 'Escape') finish(false);
+    });
+    ta.addEventListener('blur', () => finish(true));
+  }
+
+  // ---------- 编辑弹窗（标签/日期/优先级） ----------
+  function openEdit(it) {
+    editId = it.id;
+    editTags = [...it.tags];
+    document.getElementById('editDue').value = it.due || '';
+    document.getElementById('editUrgent').value = it.urgent ? 'urgent' : 'normal';
+    renderEditTags();
+    editMaskEl.classList.add('open');
+  }
+  function closeEdit() {
+    editId = null;
+    editTags = [];
+    editMaskEl.classList.remove('open');
+  }
+  function renderEditTags() {
+    editTagsBoxEl.innerHTML = '';
+    if (tagBank.length === 0) {
+      editTagsBoxEl.innerHTML = '<span class="none">暂无已有标签，可在顶部添加区创建</span>';
+      return;
+    }
+    tagBank.forEach(ent => editTagsBoxEl.appendChild(
+      makeChip(ent.name, editTags.includes(ent.name), () => {
+        toggleInSelection(editTags, ent.name);
+        renderEditTags();
+      })
+    ));
+  }
+  document.getElementById('editSave').addEventListener('click', () => {
+    const it = items.find(x => x.id === editId);
+    if (it) {
+      it.tags = [...editTags];
+      it.due = document.getElementById('editDue').value;
+      it.urgent = document.getElementById('editUrgent').value === 'urgent';
+      persist();
+    }
+    closeEdit();
+    render();
+  });
+  document.getElementById('editCancel').addEventListener('click', closeEdit);
+  editMaskEl.addEventListener('click', e => {
+    if (e.target === editMaskEl) closeEdit();   // 点遮罩关闭，点弹窗内部不关
+  });
+
+  // ---------- 增删改 ----------
+  function add() {
+    const textEl = document.getElementById('newTodo');
+    const descEl = document.getElementById('newDesc');
+    const dueEl = document.getElementById('newDue');
+    const urgentEl = document.getElementById('newUrgent');
+    const text = textEl.value.trim();
+    if (!text) { textEl.focus(); return; }
+    items.unshift({
+      id: Date.now(),
+      text,
+      desc: descEl.value.trim(),
+      done: false,
+      tags: [...pendingTags],
+      due: dueEl.value,
+      urgent: urgentEl.value === 'urgent'
+    });
+    persist();
+    textEl.value = ''; descEl.value = ''; dueEl.value = ''; urgentEl.value = 'normal';
+    pendingTags = [];
+    document.getElementById('addMask').classList.remove('open');   // 添加成功后关闭新增弹窗
+    render();
+  }
+
+  function toggle(id) {
+    const it = items.find(x => x.id === id);
+    if (it) { it.done = !it.done; persist(); render(); }
+  }
+
+  function remove(id) {
+    items = items.filter(x => x.id !== id);
+    persist();
+    render();
+  }
+
+  // ---------- 数据导出/导入（让数据能跟着文件换电脑） ----------
+  function normalizeItem(it) {
+    // 与页面加载时的旧数据兼容逻辑一致：补齐缺失字段
+    if (!Array.isArray(it.tags)) it.tags = it.tag ? [it.tag] : [];
+    if (typeof it.urgent !== 'boolean') it.urgent = false;
+    if (typeof it.desc !== 'string') it.desc = '';
+    if (typeof it.done !== 'boolean') it.done = false;
+    if (typeof it.due !== 'string') it.due = '';
+    if (typeof it.text !== 'string') it.text = String(it.text ?? '');
+    if (!Array.isArray(it.subtasks)) it.subtasks = [];   // 第 9 步:防御性默认,旧备份导入不崩
+    it.subtasks = it.subtasks.filter(s => s && typeof s.text === 'string');
+    it.subtasks.forEach(s => { if (typeof s.done !== 'boolean') s.done = false; });
+    it.tags.forEach(addTagToBank);
+    return it;
+  }
+
+  // 认证码：固定盐值 + 内容哈希（FNV-1a），标识文件由本应用导出且内容未被改动。
+  // 只防误改/损坏，不防恶意伪造（算法就在代码里）；绑定内容而非设备，换电脑导入仍有效。
+  const AUTH_SALT = 'todo-html-v1';
+  function computeAuthCode(arr) {
+    const s = AUTH_SALT + JSON.stringify(arr);
+    let h = 0x811c9dc5;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 0x01000193) >>> 0;   // imul 保证 32 位乘法不丢精度
+    }
+    return 'todo-v1-' + h.toString(16);
+  }
+
+  // ---------- 导出：先弹窗勾选，再下载所选 ----------
+  const exportMaskEl = document.getElementById('exportMask');
+  const pickListEl = document.getElementById('pickList');
+  let exportPicks = [];   // 已勾选的待办 id
+
+  function openExport() {
+    if (items.length === 0) { alert('当前没有任何待办，无可导出'); return; }
+    exportPicks = items.map(it => it.id);   // 默认全选，行为等同旧版
+    renderPickList();
+    exportMaskEl.classList.add('open');
+  }
+  function renderPickList() {
+    pickListEl.innerHTML = '';
+    items.forEach(it => {
+      const row = document.createElement('label');
+      row.className = 'pick-item';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = exportPicks.includes(it.id);
+      cb.addEventListener('change', () => {
+        const i = exportPicks.indexOf(it.id);
+        if (cb.checked && i === -1) exportPicks.push(it.id);
+        if (!cb.checked && i >= 0) exportPicks.splice(i, 1);
+      });
+      const t = document.createElement('span');
+      t.className = 't';
+      t.textContent = it.text;
+      const st = document.createElement('span');
+      st.className = 'st';
+      st.textContent = it.done ? '已完成' : '';
+      row.append(cb, t, st);
+      pickListEl.appendChild(row);
+    });
+  }
+  document.getElementById('exportBtn').addEventListener('click', openExport);
+  document.getElementById('pickAll').addEventListener('click', () => {
+    exportPicks = items.map(it => it.id); renderPickList();
+  });
+  document.getElementById('pickNone').addEventListener('click', () => {
+    exportPicks = []; renderPickList();
+  });
+  document.getElementById('exportCancel').addEventListener('click', () => {
+    exportMaskEl.classList.remove('open');
+  });
+  exportMaskEl.addEventListener('click', e => {
+    if (e.target === exportMaskEl) exportMaskEl.classList.remove('open');
+  });
+  document.getElementById('exportConfirm').addEventListener('click', () => {
+    if (exportPicks.length === 0) { alert('请至少选择一项，不允许导出空数据文件'); return; }
+    const selected = items.filter(it => exportPicks.includes(it.id));
+    // 只导出被选事项用到的标签(对象数组),而不是整个标签库
+    const usedTags = tagBank.filter(x => selected.some(it => it.tags.includes(x.name)));
+    const data = {
+      app: 'todo', version: 1,
+      exportedAt: new Date().toISOString(),
+      authCode: computeAuthCode(selected),
+      items: selected, tagBank: usedTags
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const ts = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
+    a.href = url;
+    a.download = `todo-backup-${ts}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    exportMaskEl.classList.remove('open');
+  });
+
+  document.getElementById('importBtn').addEventListener('click', () => {
+    document.getElementById('importFile').click();
+  });
+  document.getElementById('importFile').addEventListener('change', e => {
+    const file = e.target.files[0];
+    e.target.value = '';   // 清空以便同一文件可重复导入
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        // BOM 兼容：被部分编辑器另存过的文件开头带 \ufeff 标记，直接 parse 会报错，先剥掉
+        const data = JSON.parse(reader.result.replace(/^\ufeff/, ''));
+        if (!data || !Array.isArray(data.items)) throw new Error('格式不对');
+        // ① 认证码校验：必须在 normalize 之前用原始数据计算，键序才与导出时一致
+        if (typeof data.authCode === 'string') {
+          if (computeAuthCode(data.items) !== data.authCode) {
+            alert('认证码不正确：文件内容可能被改动过，或不是本应用导出的备份');
+            return;
+          }
+        } else if (!confirm('这是旧版本导出的文件（无认证码），仍要导入吗？')) {
+          return;
+        }
+        // ② 空文件拦截：不允许空备份清掉现有数据
+        if (data.items.length === 0) {
+          alert('该备份是空文件（0 条待办），已取消导入');
+          return;
+        }
+        // ③ 选导入方式：覆盖（清空后导入）或追加（合并）
+        if (!confirm(`将导入 ${data.items.length} 条待办，继续吗？`)) return;
+        const clear = confirm(
+          `是否清空当前已有的 ${items.length} 条数据？\n` +
+          `【确定】清空后导入（覆盖模式）\n` +
+          `【取消】保留当前数据，追加导入（合并模式）`
+        );
+        // 旧备份的 tagBank 是字符串数组、新版是对象数组,统一规范化后再用
+        const fileTags = normalizeTagBank(data.tagBank);
+        if (clear) {
+          tagBank = fileTags;
+          items = data.items.map(normalizeItem);
+        } else {
+          // 追加模式:标签按名字合并去重,重名保留本机的颜色设置;id 冲突时换新 id,避免顶掉现有条目
+          fileTags.forEach(ft => { if (!tagBank.some(x => x.name === ft.name)) tagBank.push(ft); });
+          const existIds = new Set(items.map(it => it.id));
+          const incoming = data.items.map(normalizeItem).map(it => {
+            if (existIds.has(it.id)) it.id = Date.now() + Math.floor(Math.random() * 1000);
+            existIds.add(it.id);
+            return it;
+          });
+          items = items.concat(incoming);
+        }
+        pendingTags = [];
+        persist();
+        render();
+        alert(clear
+          ? `覆盖导入成功：${items.length} 条待办，${tagBank.length} 个标签`
+          : `追加导入成功：当前共 ${items.length} 条待办，${tagBank.length} 个标签`);
+      } catch {
+        alert('导入失败：这不是有效的备份数据文件');
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  // ---------- 事件绑定 ----------
+  document.getElementById('addBtn').addEventListener('click', add);
+  document.getElementById('newTodo').addEventListener('keydown', e => {
+    if (e.key === 'Enter') add();
+  });
+
+  document.getElementById('tagBtn').addEventListener('click', () => pickerEl.classList.toggle('open'));
+  document.getElementById('tagOk').addEventListener('click', () => pickerEl.classList.remove('open'));
+  document.getElementById('newTagAdd').addEventListener('click', () => {
+    const el = document.getElementById('newTagInput');
+    const name = el.value.trim();
+    if (!name) { el.focus(); return; }
+    addTagToBank(name);   // 已存在时内部自动跳过
+    el.value = '';
+    if (!pendingTags.includes(name)) toggleInSelection(pendingTags, name);
+    renderPicker();
+    renderTagBtn();
+    persist();
+  });
+  document.getElementById('newTagInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('newTagAdd').click(); }
+  });
+  // 点击面板外部关闭：改用 mousedown 时机判断，此刻面板 DOM 尚未重建，位置判断可靠
+  document.addEventListener('mousedown', e => {
+    if (!pickerEl.classList.contains('open')) return;
+    if (!e.target.closest('.tag-picker-wrap')) pickerEl.classList.remove('open');
+  });
+
+  document.querySelectorAll('#statusFilters button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      statusFilter = btn.dataset.filter;
+      document.querySelectorAll('#statusFilters button')
+        .forEach(b => b.classList.toggle('active', b === btn));
+      render();
+    });
+  });
+
+  // ---------- 搜索（第五步）：输入即时过滤，Esc 清空 ----------
+  const searchEl = document.getElementById('searchBox');
+  searchEl.addEventListener('input', () => {
+    keyword = searchEl.value.trim();
+    renderList();
+  });
+  searchEl.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      searchEl.value = '';
+      keyword = '';
+      renderList();
+    }
+  });
+
+  // ---------- 第 6 步批次一：新增弹窗、缩放面板 ----------
+  const addMaskEl = document.getElementById('addMask');
+  document.getElementById('addBtn2').addEventListener('click', () => {
+    addMaskEl.classList.add('open');
+    document.getElementById('newTodo').focus();
+  });
+  document.getElementById('addCancel').addEventListener('click', () => addMaskEl.classList.remove('open'));
+  addMaskEl.addEventListener('click', e => {
+    if (e.target === addMaskEl) addMaskEl.classList.remove('open');   // 点遮罩关闭
+  });
+
+  const zoomPopEl = document.getElementById('zoomPop');
+  document.getElementById('zoomBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    // 面板与缩放按钮垂直持平：按按钮的实际位置计算（缩放后也能对齐）
+    const r = e.currentTarget.getBoundingClientRect();
+    zoomPopEl.style.top = Math.max(8, Math.round(r.top + r.height / 2 - 19)) + 'px';
+    zoomPopEl.style.right = Math.max(8, Math.round(window.innerWidth - r.left + 10)) + 'px';
+    zoomPopEl.classList.toggle('open');
+  });
+  document.addEventListener('click', e => {
+    if (!zoomPopEl.classList.contains('open')) return;
+    if (!e.target.closest('.zoom-pop') && e.target.id !== 'zoomBtn') zoomPopEl.classList.remove('open');
+  });
+
+  // 开发信息弹窗
+  const infoMaskEl = document.getElementById('infoMask');
+  document.getElementById('infoBtn').addEventListener('click', () => infoMaskEl.classList.add('open'));
+  document.getElementById('infoOk').addEventListener('click', () => infoMaskEl.classList.remove('open'));
+  infoMaskEl.addEventListener('click', e => {
+    if (e.target === infoMaskEl) infoMaskEl.classList.remove('open');
+  });
+
+  // 帮助弹窗（右栏「❓ 帮助」独立入口）
+  const helpMaskEl = document.getElementById('helpMask');
+  document.getElementById('helpBtn').addEventListener('click', () => helpMaskEl.classList.add('open'));
+  document.getElementById('helpOk').addEventListener('click', () => helpMaskEl.classList.remove('open'));
+  helpMaskEl.addEventListener('click', e => {
+    if (e.target === helpMaskEl) helpMaskEl.classList.remove('open');
+  });
+
+  // ---------- 批次二：标签统计弹窗 ----------
+  const statsMaskEl = document.getElementById('statsMask');
+  const statsListEl = document.getElementById('statsList');
+
+  function renderStatsList() {
+    statsListEl.innerHTML = '';
+    if (tagBank.length === 0) {
+      statsListEl.innerHTML = '<div class="mg-empty">还没有标签，新增待办时可创建</div>';
+      return;
+    }
+    // 在用标签按数量降序排前，未使用（0 项）垫底，与左栏分组方式呼应
+    tagBank
+      .map(ent => {
+        const used = items.filter(it => it.tags.includes(ent.name));
+        return { ent, total: used.length, open: used.filter(it => !it.done).length };
+      })
+      .sort((a, b) => b.total - a.total)
+      .forEach(({ ent, total, open }) => {
+        const row = document.createElement('div');
+        row.className = 'stat-row';
+        const l1 = document.createElement('div');
+        l1.className = 'l1';
+        const dot = document.createElement('span');
+        dot.className = 'dot';
+        dot.style.background = tagColor(ent.name).fg;
+        const name = document.createElement('span');
+        name.className = 'name';
+        name.textContent = ent.name;
+        const cnt = document.createElement('span');
+        cnt.className = 'cnt';
+        cnt.textContent = total > 0 ? `${total} 项` : '未使用';
+        l1.append(dot, name, cnt);
+        row.appendChild(l1);
+        if (total > 0) {
+          const sub = document.createElement('div');
+          sub.className = 'sub';
+          sub.textContent = `未完成 ${open} · 已完成 ${total - open}`;
+          row.appendChild(sub);
+        }
+        statsListEl.appendChild(row);
+      });
+  }
+  document.getElementById('tagStatsBtn').addEventListener('click', () => {
+    renderStatsList();
+    statsMaskEl.classList.add('open');
+  });
+  document.getElementById('statsOk').addEventListener('click', () => statsMaskEl.classList.remove('open'));
+  statsMaskEl.addEventListener('click', e => {
+    if (e.target === statsMaskEl) statsMaskEl.classList.remove('open');
+  });
+
+  // ---------- 批次二：标签管理弹窗（修改 / 颜色 / 删除） ----------
+  const manageMaskEl = document.getElementById('manageMask');
+  const manageListEl = document.getElementById('manageList');
+  let mgEditName = null;    // 正在改名的标签旧名；null = 无
+  let mgPaletteFor = null;  // 正在展开色板的标签名；null = 无
+
+  function renderManageList() {
+    manageListEl.innerHTML = '';
+    if (tagBank.length === 0) {
+      manageListEl.innerHTML = '<div class="mg-empty">还没有标签，新增待办时可创建</div>';
+      return;
+    }
+    const counts = new Map(tagBank.map(ent =>
+      [ent.name, items.filter(it => it.tags.includes(ent.name)).length]));
+    tagBank.forEach(ent => {
+      const row = document.createElement('div');
+      row.className = 'mg-row';
+
+      // 第一行：色点 + 名字 + 在用情况
+      const l1 = document.createElement('div');
+      l1.className = 'l1';
+      const dot = document.createElement('span');
+      dot.className = 'dot';
+      dot.style.background = tagColor(ent.name).fg;
+      const name = document.createElement('span');
+      name.className = 'name';
+      name.textContent = ent.name;
+      const use = document.createElement('span');
+      use.className = 'use';
+      const n = counts.get(ent.name);
+      use.textContent = n > 0 ? `${n} 项在用` : '未使用';
+      l1.append(dot, name, use);
+      row.appendChild(l1);
+
+      if (mgEditName === ent.name) {
+        // 修改：行内输入框，回车/保存生效，Esc/取消放弃
+        const box = document.createElement('div');
+        box.className = 'mg-edit';
+        const input = document.createElement('input');
+        input.maxLength = 6;
+        input.value = ent.name;
+        input.placeholder = '新名字（最多 6 字）';
+        const cancelRename = () => { mgEditName = null; renderManageList(); };
+        const finishRename = () => {
+          const v = input.value.trim();
+          if (!v) { input.focus(); return; }
+          if (v === ent.name) { cancelRename(); return; }
+          if (tagBank.some(x => x.name === v)) { alert(`已存在同名标签「${v}」，请换一个`); input.focus(); return; }
+          renameTag(ent.name, v);
+          mgEditName = null;
+          renderManageList();
+        };
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Enter') finishRename();
+          if (e.key === 'Escape') cancelRename();
+        });
+        const ok = document.createElement('button');
+        ok.className = 'ok';
+        ok.textContent = '保存';
+        ok.addEventListener('click', finishRename);
+        const no = document.createElement('button');
+        no.textContent = '取消';
+        no.addEventListener('click', cancelRename);
+        box.append(input, ok, no);
+        row.appendChild(box);
+        setTimeout(() => { input.focus(); input.select(); }, 0);
+      } else if (mgPaletteFor === ent.name) {
+        // 颜色：8 色板，点击即换
+        const pal = document.createElement('div');
+        pal.className = 'mg-palette';
+        PALETTE.forEach((col, idx) => {
+          const sw = document.createElement('span');
+          sw.className = 'sw' + (ent.color === idx ? ' on' : '');
+          sw.style.background = chipColor(idx).bg;   // 色块按当前主题呈现,深色下不刺眼
+          sw.addEventListener('click', () => {
+            ent.color = idx;
+            persist();
+            render();
+            mgPaletteFor = null;
+            renderManageList();
+          });
+          pal.appendChild(sw);
+        });
+        const fold = document.createElement('button');
+        fold.className = 'fold';
+        fold.textContent = '收起';
+        fold.addEventListener('click', () => { mgPaletteFor = null; renderManageList(); });
+        pal.appendChild(fold);
+        row.appendChild(pal);
+      } else {
+        // 常态：三个操作按钮
+        const btns = document.createElement('div');
+        btns.className = 'btns';
+        const mk = (txt, cls, fn) => {
+          const b = document.createElement('button');
+          if (cls) b.className = cls;
+          b.textContent = txt;
+          b.addEventListener('click', fn);
+          return b;
+        };
+        btns.append(
+          mk('修改', '', () => { mgEditName = ent.name; mgPaletteFor = null; renderManageList(); }),
+          mk('颜色', '', () => { mgPaletteFor = ent.name; mgEditName = null; renderManageList(); }),
+          mk('删除', 'del', () => deleteTag(ent.name))
+        );
+        row.appendChild(btns);
+      }
+      manageListEl.appendChild(row);
+    });
+  }
+
+  // 改名：库里和所有挂着的标签一起换，当前筛选若指向旧名也跟着切
+  function renameTag(oldName, newName) {
+    tagBank.forEach(x => { if (x.name === oldName) x.name = newName; });
+    items.forEach(it => { it.tags = it.tags.map(t => (t === oldName ? newName : t)); });
+    if (tagFilter === oldName) tagFilter = newName;
+    persist();
+    render();
+  }
+
+  // 删除：先确认；有事项在用时二次确认（列分项数）。通过后摘掉事项上的标签，事项本身保留
+  function deleteTag(name) {
+    if (!confirm(`确定删除标签「${name}」吗？删除后不可恢复。`)) return;
+    const used = items.filter(it => it.tags.includes(name));
+    if (used.length > 0) {
+      const open = used.filter(it => !it.done).length;
+      const pri = used.filter(it => it.urgent).length;
+      if (!confirm(
+        `标签「${name}」正被 ${used.length} 个事项使用：\n` +
+        `未完成 ${open} 个 · 已完成 ${used.length - open} 个 · 优先 ${pri} 个\n\n` +
+        `删除后这些事项将不再带该标签（事项本身保留），仍要删除吗？`
+      )) return;
+    }
+    tagBank = tagBank.filter(x => x.name !== name);   // 永久移出标签库，不会落入「未使用」
+    items.forEach(it => { it.tags = it.tags.filter(t => t !== name); });
+    if (tagFilter === name) tagFilter = null;         // 正筛选该标签时回到「全部」
+    pendingTags = pendingTags.filter(t => t !== name);
+    if (mgEditName === name) mgEditName = null;
+    if (mgPaletteFor === name) mgPaletteFor = null;
+    persist();
+    render();
+    renderManageList();
+  }
+
+  document.getElementById('tagManageBtn').addEventListener('click', () => {
+    mgEditName = null;      // 打开时复位上一次关窗残留的状态
+    mgPaletteFor = null;
+    renderManageList();
+    manageMaskEl.classList.add('open');
+  });
+  document.getElementById('manageClose').addEventListener('click', () => manageMaskEl.classList.remove('open'));
+  manageMaskEl.addEventListener('click', e => {
+    if (e.target === manageMaskEl) manageMaskEl.classList.remove('open');
+  });
+
+  applyTheme();   // 第 8 步:应用已保存的外观主题(首次调用放在渲染变量初始化之后,内部会 render 一次)
+  render();
+</script>
+</body>
+</html>

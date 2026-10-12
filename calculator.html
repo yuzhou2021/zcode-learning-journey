@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>计算器</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: #f2f4f7;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .calculator {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.08);
+    padding: 20px;
+    width: 300px;
+  }
+  .display {
+    background: #f8f9fb;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: right;
+    margin-bottom: 16px;
+    min-height: 78px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .expression {
+    color: #98a2b3;
+    font-size: 14px;
+    min-height: 20px;
+    word-break: break-all;
+  }
+  .result {
+    font-size: 36px;
+    font-weight: 600;
+    color: #1a2233;
+    word-break: break-all;
+  }
+  .keys {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  button {
+    border: none;
+    border-radius: 10px;
+    font-size: 20px;
+    padding: 16px 0;
+    cursor: pointer;
+    background: #eef1f5;
+    color: #1a2233;
+    transition: background .15s, transform .05s;
+  }
+  button:hover { background: #e2e7ee; }
+  button:active { transform: scale(.96); }
+  button.op { background: #e0eaff; color: #2b5cd9; }
+  button.op:hover { background: #d0defc; }
+  button.fn { background: #f3e8e8; color: #c24545; }
+  button.fn:hover { background: #ecdcdc; }
+  button.eq {
+    background: #2b5cd9;
+    color: #fff;
+    grid-row: span 2;
+    padding: 0;
+  }
+  button.eq:hover { background: #2450bf; }
+  button.zero { grid-column: span 2; }
+</style>
+</head>
+<body>
+  <div class="calculator">
+    <div class="display">
+      <div class="expression" id="expr"></div>
+      <div class="result" id="result">0</div>
+    </div>
+    <div class="keys">
+      <button class="fn" data-action="clear">AC</button>
+      <button class="fn" data-action="back">⌫</button>
+      <button class="op" data-op="%">%</button>
+      <button class="op" data-op="/">÷</button>
+
+      <button data-num="7">7</button>
+      <button data-num="8">8</button>
+      <button data-num="9">9</button>
+      <button class="op" data-op="*">×</button>
+
+      <button data-num="4">4</button>
+      <button data-num="5">5</button>
+      <button data-num="6">6</button>
+      <button class="op" data-op="-">−</button>
+
+      <button data-num="1">1</button>
+      <button data-num="2">2</button>
+      <button data-num="3">3</button>
+      <button class="op" data-op="+">+</button>
+
+      <button class="zero" data-num="0">0</button>
+      <button data-num=".">.</button>
+      <button class="eq" data-action="equals">=</button>
+    </div>
+  </div>
+
+<script>
+  const exprEl = document.getElementById('expr');
+  const resultEl = document.getElementById('result');
+
+  let current = '0';      // 当前输入的数
+  let expr = '';          // 已确认的表达式（如 "12+3"）
+  let op = null;          // 待执行的运算符
+  let justEvaluated = false;
+
+  function render() {
+    exprEl.textContent = expr + (op ? ({'+':'+','-':'−','*':'×','/':'÷','%':'%'})[op] : '');
+    resultEl.textContent = current;
+  }
+
+  function inputNum(n) {
+    if (justEvaluated) { current = '0'; justEvaluated = false; }
+    if (current === '0') current = n === '.' ? '0.' : n;
+    else if (n === '.' && current.includes('.')) return;
+    else current += n;
+  }
+
+  function compute(a, b, op) {
+    switch (op) {
+      case '+': return a + b;
+      case '-': return a - b;
+      case '*': return a * b;
+      case '/':
+        if (b === 0) throw new Error('除数不能为 0');
+        return a / b;
+      case '%': return a % b;
+    }
+  }
+
+  function applyOp() {
+    if (op === null) return;
+    const a = parseFloat(expr);
+    const b = parseFloat(current);
+    const r = compute(a, b, op);
+    // 保留合理精度，避免浮点误差显示问题
+    current = String(Math.round(r * 1e10) / 1e10);
+    op = null;
+  }
+
+  function press(key, type) {
+    try {
+      if (type === 'num') inputNum(key);
+      else if (type === 'op') {
+        if (op !== null) applyOp();          // 连续运算：先算前一步
+        expr = current;
+        op = key;
+        justEvaluated = false;
+        // 下一轮输入新数字
+        current = '0';
+        expr = expr; // 保持显示
+        render();
+        return;
+      }
+      else if (type === 'action') {
+        if (key === 'clear') { current = '0'; expr = ''; op = null; justEvaluated = false; }
+        else if (key === 'back') {
+          if (justEvaluated) return;
+          current = current.length > 1 ? current.slice(0, -1) : '0';
+        }
+        else if (key === 'equals') {
+          if (op !== null) {
+            const full = expr + (op === '*' ? '×' : op === '/' ? '÷' : op) + current;
+            applyOp();
+            expr = '';
+            exprEl.textContent = full + ' =';
+            resultEl.textContent = current;
+            justEvaluated = true;
+            return;
+          }
+        }
+      }
+      render();
+    } catch (e) {
+      resultEl.textContent = '错误';
+      exprEl.textContent = e.message;
+      current = '0'; expr = ''; op = null; justEvaluated = true;
+    }
+  }
+
+  document.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.num !== undefined) press(btn.dataset.num, 'num');
+      else if (btn.dataset.op) press(btn.dataset.op, 'op');
+      else if (btn.dataset.action) press(btn.dataset.action, 'action');
+    });
+  });
+
+  // 支持键盘输入
+  document.addEventListener('keydown', e => {
+    if (/^[0-9.]$/.test(e.key)) press(e.key, 'num');
+    else if ('+-*/%'.includes(e.key)) press(e.key, 'op');
+    else if (e.key === 'Enter' || e.key === '=') press('equals', 'action');
+    else if (e.key === 'Backspace') press('back', 'action');
+    else if (e.key === 'Escape') press('clear', 'action');
+  });
+
+  render();
+</script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 8 步 · 深色配色方案预览（三选一）</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: #e9edf2; padding: 24px 16px 60px;
+  }
+  .page-head { max-width: 980px; margin: 0 auto 22px; }
+  .page-head h1 { font-size: 22px; color: #1a2233; }
+  .page-head p { font-size: 14px; color: #55606e; margin-top: 6px; line-height: 1.6; }
+
+  .plan { max-width: 980px; margin: 0 auto 30px; }
+  .plan-title { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+  .plan-title b { font-size: 17px; color: #1a2233; }
+  .plan-title span { font-size: 13px; color: #7a8494; }
+  .plan-title .pick {
+    margin-left: auto; font-size: 12.5px; color: #2b5cd9;
+    border: 1.5px solid #2b5cd9; border-radius: 999px; padding: 3px 14px;
+  }
+
+  /* ===== 每套方案的变量（与将来 todo.html 实现同思路） ===== */
+  .demo {
+    border-radius: 14px; overflow: hidden; border: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .t-light { --bg:#f2f4f7; --panel:#fff; --card:#fff; --input:#fff; --border:#e4e8ee; --border2:#d0d5dd;
+    --text1:#1a2233; --text2:#667085; --text3:#98a2b3; --primary:#2b5cd9; --primary-hover:#2450bf;
+    --primary-fg:#fff; --soft:#eef1f5; --hover:#f2f5fa; --active:#e0eaff; --danger:#c24545;
+    --star:#ffc400; --mark-bg:#fff3bf; --mark-fg:inherit; }
+  .t-a { --bg:#1f1f1f; --panel:#262626; --card:#2b2b2b; --input:#373737; --border:#3a3a3a; --border2:#454545;
+    --text1:#f1f3f4; --text2:#9aa0a6; --text3:#71767b; --primary:#8ab4f8; --primary-hover:#aecbfa;
+    --primary-fg:#202124; --soft:#3c4043; --hover:#333336; --active:#39527d; --danger:#e57373;
+    --star:#ffc400; --mark-bg:#5c5220; --mark-fg:#ffe08a; }
+  .t-b { --bg:#0f172a; --panel:#161e31; --card:#1e293b; --input:#2a3850; --border:#2c3a52; --border2:#3b4a63;
+    --text1:#e2e8f0; --text2:#94a3b8; --text3:#64748b; --primary:#60a5fa; --primary-hover:#93c5fd;
+    --primary-fg:#0f172a; --soft:#334155; --hover:#243247; --active:#24406e; --danger:#f87171;
+    --star:#fbbf24; --mark-bg:#665c1e; --mark-fg:#fde68a; }
+  .t-c { --bg:#1c1917; --panel:#232019; --card:#292524; --input:#38322c; --border:#3b352f; --border2:#4a433b;
+    --text1:#e7e5e4; --text2:#a8a29e; --text3:#78716c; --primary:#7ea6e0; --primary-hover:#a3c3ec;
+    --primary-fg:#1c1917; --soft:#3f3a34; --hover:#312c27; --active:#3c4d6b; --danger:#e0785f;
+    --star:#eab308; --mark-bg:#5c4d1a; --mark-fg:#fde68a; }
+
+  /* ===== 组件样例（与 todo.html 同款，变量驱动） ===== */
+  .demo .top {
+    display: flex; align-items: baseline; gap: 14px; padding: 13px 18px;
+    background: var(--panel); border-bottom: 1px solid var(--border);
+  }
+  .demo .top h2 { font-size: 19px; color: var(--text1); font-weight: 600; }
+  .demo .top .st { font-size: 12.5px; color: var(--text2); }
+
+  .demo .row { display: flex; min-height: 300px; }
+  .demo .side {
+    width: 150px; flex-shrink: 0; background: var(--panel);
+    border-right: 1px solid var(--border); padding: 12px 10px;
+  }
+  .demo .side .cap { font-size: 12px; color: var(--text3); font-weight: 600; margin: 0 6px 8px; }
+  .demo .ti {
+    display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 8px;
+    font-size: 13px; color: var(--text1); margin-bottom: 2px;
+  }
+  .demo .ti.on { background: var(--active); color: var(--primary); font-weight: 600; }
+  .demo .ti .dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .demo .side .fn {
+    margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px;
+    font-size: 12.5px; color: var(--text2);
+  }
+  .demo .side .fn div { padding: 4px 6px; }
+
+  .demo .main { flex: 1; padding: 14px 16px; }
+  .demo .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .demo .filters button {
+    border: none; border-radius: 8px; background: var(--soft); color: var(--text2);
+    font-size: 12.5px; padding: 6px 13px; font-family: inherit;
+  }
+  .demo .filters button.on { background: var(--primary); color: var(--primary-fg); font-weight: 600; }
+  .demo .search {
+    width: 200px; border: 1px solid var(--border2); border-radius: 8px; background: var(--input);
+    color: var(--text3); font-size: 12.5px; padding: 7px 11px; margin-bottom: 12px;
+  }
+  .demo .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 11px 13px; display: flex; gap: 9px; margin-bottom: 8px; align-items: flex-start;
+  }
+  .demo .card .box {
+    width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--border2);
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .demo .card .box.done { background: var(--primary); border-color: var(--primary); position: relative; }
+  .demo .card .box.done::after {
+    content: '✓'; position: absolute; inset: 0; color: var(--primary-fg);
+    font-size: 11px; line-height: 14px; text-align: center;
+  }
+  .demo .card .star { color: var(--star); font-size: 16px; flex-shrink: 0; line-height: 1.3; }
+  .demo .card .star.off { color: var(--border2); }
+  .demo .card .ct { flex: 1; min-width: 0; }
+  .demo .card .t1 { font-size: 14px; color: var(--text1); margin-bottom: 5px; }
+  .demo .card .t1.gone { text-decoration: line-through; color: var(--text3); }
+  .demo .card .t2 { font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+  .demo .card .t2 mark { background: var(--mark-bg); color: var(--mark-fg); border-radius: 3px; padding: 0 1px; }
+  .demo .meta { display: flex; gap: 6px; align-items: center; }
+  .demo .chip {
+    font-size: 11.5px; padding: 2px 9px; border-radius: 999px; border: 1px solid transparent;
+  }
+  .demo .due { font-size: 11.5px; color: var(--text2); }
+  .demo .due.late { color: var(--danger); font-weight: 600; }
+  .demo .acts { display: flex; gap: 4px; flex-shrink: 0; }
+  .demo .acts span { font-size: 12px; color: var(--primary); padding: 3px 6px; }
+  .demo .acts .rm { color: var(--danger); }
+  .demo .btnrow { display: flex; gap: 8px; margin-top: 12px; }
+  .demo .btnrow .p {
+    background: var(--primary); color: var(--primary-fg); border: none; border-radius: 9px;
+    font-size: 13px; padding: 8px 20px; font-family: inherit;
+  }
+  .demo .btnrow .s {
+    background: var(--card); color: var(--text2); border: 1px solid var(--border2);
+    border-radius: 9px; font-size: 13px; padding: 8px 16px; font-family: inherit;
+  }
+  .demo .hint { font-size: 11.5px; color: var(--text3); margin-top: 10px; }
+
+  .foot-note { max-width: 980px; margin: 26px auto 0; font-size: 13px; color: #55606e; line-height: 1.7;
+    background: #fff; border-radius: 12px; padding: 14px 18px; border: 1px solid #d0d5dd; }
+  .foot-note b { color: #1a2233; }
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <h1>第 8 步 · 深色配色方案预览</h1>
+  <p>三套方案用<b>同样的组件样例</b>（筛选按钮、搜索框、事项卡片、标签芯片、截止日、高亮、按钮）并排渲染。
+     看完选一套（回复「选 A / B / C」），或指出想改的颜色（如「B 的蓝再亮一点」）。最后一块是现在的浅色版,作对照。</p>
+</div>
+
+<!-- 标签芯片深色变体说明:浅底压成主色半透明底、字用亮色,三套方案同一策略,基色随方案变 -->
+<div class="plan">
+  <div class="plan-title"><b>方案 A · 石墨</b><span>参考 Edge / Chrome 深色——中性石墨灰,最接近浏览器原生观感</span><span class="pick">候选</span></div>
+  <div class="demo t-a">
+    <div class="top"><h2>待办清单</h2><span class="st">共 4 项 · 已完成 1 项 · 未完成且优先 1 项</span></div>
+    <div class="row">
+      <div class="side">
+        <div class="cap">标签</div>
+        <div class="ti on"><span class="dot" style="background:#8ab4f8"></span>全部</div>
+        <div class="ti"><span class="dot" style="background:#7fce93"></span>工作</div>
+        <div class="ti"><span class="dot" style="background:#f0b26b"></span>学习</div>
+        <div class="fn">📊 标签统计<br>🏷 标签管理</div>
+      </div>
+      <div class="main">
+        <div class="filters"><button class="on">全部</button><button>未完成</button><button>已完成</button><button>★ 优先</button><button>📅 截止日</button></div>
+        <div class="search">🔍 搜索标题 / 简述</div>
+        <div class="card"><span class="star">★</span><span class="box"></span>
+          <div class="ct"><div class="t1">写周报</div><div class="t2">汇总本周进展,重点标<mark>记</mark>里程碑</div>
+          <div class="meta"><span class="chip" style="background:rgba(138,180,248,.18);color:#8ab4f8">工作</span><span class="due late">📅 已逾期 2 天</span></div></div>
+          <div class="acts"><span>编辑</span><span class="rm">删除</span></div></div>
+        <div class="card"><span class="star off">★</span><span class="box done"></span>
+          <div class="ct"><div class="t1 gone">回邮件</div>
+          <div class="meta"><span class="chip" style="background:rgba(138,180,248,.18);color:#8ab4f8">工作</span><span class="chip" style="background:rgba(127,206,147,.16);color:#7fce93">生活</span></div></div>
+          <div class="acts"><span>编辑</span><span class="rm">删除</span></div></div>
+        <div class="btnrow"><button class="p">＋ 新增</button><button class="s">⬇ 导出</button><button class="s">⬆ 导入</button></div>
+        <div class="hint">提示:悬停事项出现「拖拽」手柄可调顺序</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="plan">
+  <div class="plan-title"><b>方案 B · 午夜蓝</b><span>Tailwind Slate 系——深蓝底、对比强,夜间长时间看负担小</span><span class="pick">候选</span></div>
+  <div class="demo t-b">
+    <div class="top"><h2>待办清单</h2><span class="st">共 4 项 · 已完成 1 项 · 未完成且优先 1 项</span></div>
+    <div class="row">
+      <div class="side">
+        <div class="cap">标签</div>
+        <div class="ti on"><span class="dot" style="background:#60a5fa"></span>全部</div>
+        <div class="ti"><span class="dot" style="background:#6fce97"></span>工作</div>
+        <div class="ti"><span class="dot" style="background:#fbbf24"></span>学习</div>
+        <div class="fn">📊 标签统计<br>🏷 标签管理</div>
+      </div>
+      <div class="main">
+        <div class="filters"><button class="on">全部</button><button>未完成</button><button>已完成</button><button>★ 优先</button><button>📅 截止日</button></div>
+        <div class="search">🔍 搜索标题 / 简述</div>
+        <div class="card"><span class="star">★</span><span class="box"></span>
+          <div class="ct"><div class="t1">写周报</div><div class="t2">汇总本周进展,重点标<mark>记</mark>里程碑</div>
+          <div class="meta"><span class="chip" style="background:rgba(96,165,250,.16);color:#93c5fd">工作</span><span class="due late">📅 已逾期 2 天</span></div></div>
+          <div class="acts"><span>编辑</span><span class="rm">删除</span></div></div>
+        <div class="card"><span class="star off">★</span><span class="box done"></span>
+          <div class="ct"><div class="t1 gone">回邮件</div>
+          <div class="meta"><span class="chip" style="background:rgba(96,165,250,.16);color:#93c5fd">工作</span><span class="chip" style="background:rgba(111,206,151,.14);color:#6fce97">生活</span></div></div>
+          <div class="acts"><span>编辑</span><span class="rm">删除</span></div></div>
+        <div class="btnrow"><button class="p">＋ 新增</button><button class="s">⬇ 导出</button><button class="s">⬆ 导入</button></div>
+        <div class="hint">提示:悬停事项出现「拖拽」手柄可调顺序</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="plan">
+  <div class="plan-title"><b>方案 C · 暖夜</b><span>GitHub Dark Dimmed 风——暖棕灰底,色温偏暖,观感柔和</span><span class="pick">候选</span></div>
+  <div class="demo t-c">
+    <div class="top"><h2>待办清单</h2><span class="st">共 4 项 · 已完成 1 项 · 未完成且优先 1 项</span></div>
+    <div class="row">
+      <div class="side">
+        <div class="cap">标签</div>
+        <div class="ti on"><span class="dot" style="background:#7ea6e0"></span>全部</div>
+        <div class="ti"><span class="dot" style="background:#85cba0"></span>工作</div>
+        <div class="ti"><span class="dot" style="background:#e8b86d"></span>学习</div>
+        <div class="fn">📊 标签统计<br>🏷 标签管理</div>
+      </div>
+      <div class="main">
+        <div class="filters"><button class="on">全部</button><button>未完成</button><button>已完成</button><button>★ 优先</button><button>📅 截止日</button></div>
+        <div class="search">🔍 搜索标题 / 简述</div>
+        <div class="card"><span class="star">★</span><span class="box"></span>
+          <div class="ct"><div class="t1">写周报</div><div class="t2">汇总本周进展,重点标<mark>记</mark>里程碑</div>
+          <div class="meta"><span class="chip" style="background:rgba(126,166,224,.16);color:#a3c3ec">工作</span><span class="due late">📅 已逾期 2 天</span></div></div>
+          <div class="acts"><span>编辑</span><span class="rm">删除</span></div></div>
+        <div class="card"><span class="star off">★</span><span class="box done"></span>
+          <div class="ct"><div class="t1 gone">回邮件</div>
+          <div class="meta"><span class="chip" style="background:rgba(126,166,224,.16);color:#a3c3ec">工作</span><span class="chip" style="background:rgba(133,203,160,.14);color:#85cba0">生活</span></div></div>
+          <div class="acts"><span>编辑</span><span class="rm">删除</span></div></div>
+        <div class="btnrow"><button class="p">＋ 新增</button><button class="s">⬇ 导出</button><button class="s">⬆ 导入</button></div>
+        <div class="hint">提示:悬停事项出现「拖拽」手柄可调顺序</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="plan">
+  <div class="plan-title"><b>现状对照 · 浅色版</b><span>现在的配色,不需要动——放这里方便对比</span></div>
+  <div class="demo t-light">
+    <div class="top"><h2>待办清单</h2><span class="st">共 4 项 · 已完成 1 项 · 未完成且优先 1 项</span></div>
+    <div class="row">
+      <div class="side">
+        <div class="cap">标签</div>
+        <div class="ti on"><span class="dot" style="background:#2b5cd9"></span>全部</div>
+        <div class="ti"><span class="dot" style="background:#1f8a4c"></span>工作</div>
+        <div class="ti"><span class="dot" style="background:#c26a0f"></span>学习</div>
+        <div class="fn">📊 标签统计<br>🏷 标签管理</div>
+      </div>
+      <div class="main">
+        <div class="filters"><button class="on">全部</button><button>未完成</button><button>已完成</button><button>★ 优先</button><button>📅 截止日</button></div>
+        <div class="search">🔍 搜索标题 / 简述</div>
+        <div class="card"><span class="star">★</span><span class="box"></span>
+          <div class="ct"><div class="t1">写周报</div><div class="t2">汇总本周进展,重点标<mark>记</mark>里程碑</div>
+          <div class="meta"><span class="chip" style="background:#e0eaff;color:#2b5cd9">工作</span><span class="due late">📅 已逾期 2 天</span></div></div>
+          <div class="acts"><span>编辑</span><span class="rm">删除</span></div></div>
+        <div class="card"><span class="star off">★</span><span class="box done"></span>
+          <div class="ct"><div class="t1 gone">回邮件</div>
+          <div class="meta"><span class="chip" style="background:#e0eaff;color:#2b5cd9">工作</span><span class="chip" style="background:#e5f6ea;color:#1f8a4c">生活</span></div></div>
+          <div class="acts"><span>编辑</span><span class="rm">删除</span></div></div>
+        <div class="btnrow"><button class="p">＋ 新增</button><button class="s">⬇ 导出</button><button class="s">⬆ 导入</button></div>
+        <div class="hint">提示:悬停事项出现「拖拽」手柄可调顺序</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="foot-note">
+  <b>说明:</b>① 三套深色方案的标签芯片采用同一策略——浅色版的「浅底深字」在深色下变成「主色半透明底 + 亮色字」,
+  8 个标签色都会按此规则逐色适配,预览里以蓝、绿两色示例;② 优先黄星、逾期红、搜索高亮(mark)也会按方案微调亮度;
+  ③ 选定后我会在 todo.html 里把全部颜色抽成 CSS 变量再实现深色(这才是这张卡的正确做法),预览文件本身与主应用无关,选完可删。<br>
+  <b>回复格式:</b>「选 A / B / C」,或「B,但蓝色再亮些 / 星星颜色不对」这类修改意见,我会先更新预览再确认。
+</div>
+
+</body>
+</html>
